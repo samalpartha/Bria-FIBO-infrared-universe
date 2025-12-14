@@ -2,6 +2,8 @@
 
 **An AI-Powered Cinematic Storyboard Creator powered by Bria FIBO.**
 
+[**🚀 Live Demo**](https://bria-fibo-infrared-universe.vercel.app/)
+
 ![Infrared Universe Banner](https://images.unsplash.com/photo-1614728853970-309140b74925?q=80&w=2500&auto=format&fit=crop)
 
 ## 🏆 Bria FIBO Hackathon Submission
