@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Hash, Sparkles, BookOpen, Clock, Star, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 interface ScriptPanelProps {
     script: string;
@@ -71,18 +72,22 @@ export function ScriptPanel({ script, setScript, history = [], onApplyPreset, on
                                 <span className="font-mono">{script.split(/\s+/).length} WORDS</span>
                             </div>
                             <div className="grid grid-cols-2 gap-2">
-                                <button
-                                    onClick={() => onAnalyze?.()}
-                                    className="py-2 bg-[var(--cinema-teal)]/10 hover:bg-[var(--cinema-teal)]/20 border border-[var(--cinema-teal)]/30 text-[var(--cinema-teal)] rounded flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-all hover:scale-[1.02]"
-                                >
-                                    <Sparkles className="w-3 h-3" /> Analyze
-                                </button>
-                                <button
-                                    onClick={() => onGenerateAll?.()}
-                                    className="py-2 bg-[var(--cinema-gold)]/10 hover:bg-[var(--cinema-gold)]/20 border border-[var(--cinema-gold)]/30 text-[var(--cinema-gold)] rounded flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-all hover:scale-[1.02]"
-                                >
-                                    <Sparkles className="w-3 h-3" /> Render All
-                                </button>
+                                <Tooltip content="Parse script into scenes automatically" side="top">
+                                    <button
+                                        onClick={() => onAnalyze?.()}
+                                        className="w-full py-2 bg-[var(--cinema-teal)]/10 hover:bg-[var(--cinema-teal)]/20 border border-[var(--cinema-teal)]/30 text-[var(--cinema-teal)] rounded flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-all hover:scale-[1.02]"
+                                    >
+                                        <Sparkles className="w-3 h-3" /> Analyze
+                                    </button>
+                                </Tooltip>
+                                <Tooltip content="Generate images for all scenes in batch" side="top">
+                                    <button
+                                        onClick={() => onGenerateAll?.()}
+                                        className="w-full py-2 bg-[var(--cinema-gold)]/10 hover:bg-[var(--cinema-gold)]/20 border border-[var(--cinema-gold)]/30 text-[var(--cinema-gold)] rounded flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-all hover:scale-[1.02]"
+                                    >
+                                        <Sparkles className="w-3 h-3" /> Render All
+                                    </button>
+                                </Tooltip>
                             </div>
                         </div>
                     </div>

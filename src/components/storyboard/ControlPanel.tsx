@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Camera, Sun, Palette, Zap } from 'lucide-react';
 import { Scene, FiboParameters } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 interface StudioControlsProps {
     scene?: Scene;
@@ -20,9 +21,11 @@ export function StudioControls({ scene, isHybridMode, onGenerate, isGenerating, 
 
                 {/* Hybrid Mode Badge */}
                 {isHybridMode && (
-                    <div className="flex items-center gap-1.5 px-2 py-0.5 bg-[var(--cinema-gold)]/10 border border-[var(--cinema-gold)]/20 rounded text-[9px] text-[var(--cinema-gold)] animate-pulse">
-                        <Zap className="w-3 h-3" /> Hybrid
-                    </div>
+                    <Tooltip content="Structure Lock Active (Bria V1 + FIBO V2)" side="bottom">
+                        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-[var(--cinema-gold)]/10 border border-[var(--cinema-gold)]/20 rounded text-[9px] text-[var(--cinema-gold)] animate-pulse cursor-help">
+                            <Zap className="w-3 h-3" /> Hybrid
+                        </div>
+                    </Tooltip>
                 )}
             </div>
 
@@ -132,20 +135,22 @@ export function StudioControls({ scene, isHybridMode, onGenerate, isGenerating, 
 
             {/* Footer Action */}
             <div className="p-5 border-t border-white/10 bg-black/20">
-                <button
-                    onClick={onGenerate}
-                    disabled={isGenerating}
-                    className="w-full py-4 generate-btn flex items-center justify-center gap-2"
-                >
-                    {isGenerating ? (
-                        <>
-                            <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
-                            Generating...
-                        </>
-                    ) : (
-                        "Generate Shot"
-                    )}
-                </button>
+                <Tooltip content="Generate a high-fidelity image for this scene" side="top">
+                    <button
+                        onClick={onGenerate}
+                        disabled={isGenerating}
+                        className="w-full py-4 generate-btn flex items-center justify-center gap-2"
+                    >
+                        {isGenerating ? (
+                            <>
+                                <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                                Generating...
+                            </>
+                        ) : (
+                            "Generate Shot"
+                        )}
+                    </button>
+                </Tooltip>
             </div>
         </div>
     );
