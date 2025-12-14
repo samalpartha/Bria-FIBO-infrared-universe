@@ -14,10 +14,10 @@ interface StudioControlsProps {
 
 export function StudioControls({ scene, isHybridMode, onGenerate, isGenerating, onUpdateParams }: StudioControlsProps) {
     return (
-        <div className="w-full h-full flex flex-col control-panel overflow-hidden border-none text-[#f5f5f5]">
+        <div className="w-full h-full flex flex-col control-panel overflow-hidden border-none text-[var(--director-text)] bg-[var(--director-surface-2)]">
             {/* Header */}
-            <div className="h-12 px-5 flex items-center justify-between border-b border-white/10 bg-black/20">
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#b0b0b0]">Studio Controls</span>
+            <div className="h-10 px-5 flex items-center justify-between border-b border-white/5 bg-black/20">
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#777]">Studio Controls</span>
 
                 {/* Hybrid Mode Badge */}
                 {isHybridMode && (
@@ -36,7 +36,7 @@ export function StudioControls({ scene, isHybridMode, onGenerate, isGenerating, 
                 <div className="space-y-3">
                     <div className="flex items-center gap-2 text-[var(--cinema-teal)] mb-1">
                         <Camera className="w-3 h-3" />
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-[#f5f5f5]">Camera</label>
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-[#777]">Camera</label>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                         {[
@@ -52,8 +52,8 @@ export function StudioControls({ scene, isHybridMode, onGenerate, isGenerating, 
                                     onClick={() => onUpdateParams?.({ camera: { shotType: t.value as any } })}
                                     aria-label={`Set Shot Type to ${t.label}`}
                                     className={cn(
-                                        "interactive-pill py-3 px-4 rounded-lg text-xs font-medium text-left relative overflow-hidden",
-                                        isActive && "active"
+                                        "interactive-pill py-3 px-4 rounded-lg text-[13px] font-bold uppercase tracking-wide text-left relative overflow-hidden transition-all",
+                                        isActive ? "bg-[var(--cinema-teal)] text-black shadow-[0_0_10px_rgba(50,184,198,0.4)]" : "bg-white/5 text-[#A0A0A0] hover:bg-white/10 hover:text-white"
                                     )}
                                 >
                                     <span className="relative z-10">{t.label}</span>
@@ -67,7 +67,7 @@ export function StudioControls({ scene, isHybridMode, onGenerate, isGenerating, 
                 <div className="space-y-3">
                     <div className="flex items-center gap-2 text-[var(--cinema-gold)] mb-1">
                         <Sun className="w-3 h-3" />
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-[#f5f5f5]">Lighting</label>
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-[#777]">Lighting</label>
                     </div>
                     <div className="grid grid-cols-4 gap-3">
                         {[
@@ -103,7 +103,7 @@ export function StudioControls({ scene, isHybridMode, onGenerate, isGenerating, 
                 <div className="space-y-3">
                     <div className="flex items-center gap-2 text-purple-400 mb-1">
                         <Palette className="w-3 h-3" />
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-[#f5f5f5]">Style</label>
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-[#777]">Style</label>
                     </div>
                     <div className="space-y-2">
                         <div

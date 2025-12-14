@@ -18,7 +18,7 @@ export function ScriptPanel({ script, setScript, history = [], onApplyPreset, on
     const [activeTab, setActiveTab] = useState<Tab>('script');
 
     return (
-        <div className="flex flex-col h-full bg-[#1a1a1a] shadow-xl z-20">
+        <div className="flex flex-col h-full bg-[var(--director-surface-1)] shadow-xl z-20">
             {/* ... Tabs (Unchanged) ... */}
             <div className="h-12 border-b border-white/10 flex items-center bg-black/20">
                 <button

@@ -131,6 +131,22 @@
     animation: reel-spin 8s linear infinite;
   }
 
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .glow-gold {
+    box-shadow: 0 0 15px rgba(255, 184, 0, 0.3);
+  }
+
+  .glow-teal {
+    box-shadow: 0 0 15px rgba(0, 200, 255, 0.3);
+  }
+
+  .hover-glow-gold:hover {
+    box-shadow: 0 0 8px rgba(255, 184, 0, 0.5);
+  }
+
   /* Golden Ratio (Simplified Rule of Thirds for UI) */
   .golden-grid {
     background-image:
@@ -139,22 +155,24 @@
     background-size: 33.33% 33.33%;
     position: relative;
   }
+}
 
-  /* Custom Scrollbar for Panels */
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
-  }
+/* Custom Scrollbar for Premium Feel */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
 
-  .custom-scrollbar::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.1);
-  }
+::-webkit-scrollbar-track {
+  background: var(--studio-bg);
+  /* Using existing variable */
+}
 
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-  }
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 3px;
+}
 
-  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.2);
-  }
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cinema-gold);
 }

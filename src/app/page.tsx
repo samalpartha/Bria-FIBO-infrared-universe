@@ -1,9 +1,8 @@
-
 "use client";
 
 import { useState } from "react";
 import { Scene } from "@/lib/types";
-import { Play } from "lucide-react";
+import { Play, Search, ZoomIn, PlusCircle, SkipBack, SkipForward, FileText, Camera } from "lucide-react";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -90,25 +89,22 @@ export default function Home() {
     }
   }
 
-  // Smooth scroll to workspace or dismiss hero
-  const handleStart = () => {
-    setShowHero(false);
-  };
-
   return (
-    <main className="h-screen w-screen flex flex-col bg-[#1a1a1a] text-[#f5f5f5] overflow-hidden font-sans">
+    <main className="h-screen w-screen flex flex-col bg-[var(--director-bg)] text-[var(--director-text)] overflow-hidden font-sans selection:bg-[var(--cinema-gold)] selection:text-black">
       <Navbar />
       <WelcomeModal />
 
-      {/* FIXED STUDIO LAYOUT: Desktop 3-Pane | Mobile Tabbed */}
-      <div className="flex-1 flex min-h-0 relative">
+      {/* MAIN WORKSPACE GRID */}
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-[320px_1fr_360px] min-h-0 relative">
 
-        {/* LEFT: SCRIPT PANEL (Desktop: Fixed 300px | Mobile: Full if active) */}
+        {/* LEFT PANEL: SCRIPT (Fixed on Desktop) */}
         <div className={`
-            flex-col bg-[#1a1a1a] z-30 shadow-xl border-r border-white/5
-            md:w-[300px] md:flex md:relative absolute inset-0
-            ${activeMobileTab === 'script' ? 'flex w-full' : 'hidden'}
+            flex flex-col bg-[var(--director-surface-1)] border-r border-white/5 z-30
+            ${activeMobileTab === 'script' ? 'absolute inset-0 w-full' : 'hidden md:flex relative'}
         `}>
+          <div className="h-10 border-b border-white/5 flex items-center px-4 bg-black/20">
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#777]">Scene List</span>
+          </div>
           <ScriptPanel
             script={script}
             setScript={setScript}
@@ -119,75 +115,91 @@ export default function Home() {
           />
         </div>
 
-        {/* CENTER: FLUID CANVAS (Desktop: Flex | Mobile: Full if active) */}
+        {/* CENTER PANEL: TIMELINE / CANVAS */}
         <div className={`
-            flex-col bg-[#111] overflow-hidden relative flex-1
-            ${activeMobileTab === 'storyboard' ? 'flex' : 'hidden md:flex'}
+            flex flex-col relative bg-[var(--director-bg)] overflow-hidden
+            ${activeMobileTab === 'storyboard' ? 'absolute inset-0 w-full flex' : 'hidden md:flex relative'}
         `}>
+          {/* HEADER */}
+          <div className="h-14 border-b border-white/5 flex items-center justify-between px-6 bg-[var(--director-surface-1)] z-20 shadow-md">
+            <div className="flex items-center gap-4">
+              <span className="text-lg font-bold text-white tracking-wide">INT. NEO-TOKYO APARTMENT - NIGHT</span>
+              <span className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-[#777] font-mono">SCENE 1</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button className="p-2 hover:bg-white/5 rounded-full text-[#777] hover:text-white transition-colors"><Search className="w-4 h-4" /></button>
+              <button className="p-2 hover:bg-white/5 rounded-full text-[#777] hover:text-white transition-colors"><ZoomIn className="w-4 h-4" /></button>
+            </div>
+          </div>
 
-          {/* Scrollable Canvas Area */}
-          <div className="flex-1 overflow-y-auto custom-scrollbar relative cinema-canvas pb-20 md:pb-0">
-            {/* Film Grain & Grid Overlay */}
-            <div className="absolute inset-0 film-grain pointer-events-none z-0" />
+          {/* CANVAS AREA */}
+          <div className="flex-1 overflow-y-auto custom-scrollbar relative p-8">
+            <div className="absolute inset-0 film-grain pointer-events-none z-0 opacity-30" />
 
-            {/* Hero Section (Collapsible) */}
-            {showHero && (
-              <div className="relative z-20">
-                <Hero onStart={handleStart} />
-              </div>
-            )}
-
-            <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-8 relative z-10 transition-all duration-500">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xs font-bold text-white uppercase tracking-[0.2em] flex items-center gap-2">
-                  <Play className="w-3 h-3 text-[var(--cinema-gold)]" fill="currentColor" /> Timeline
-                </h2>
-                <span className="text-[10px] font-mono text-white/50 hidden md:block">00:00:12:44</span>
-              </div>
-
-              <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragEnd={handleDragEnd}
-              >
-                <SortableContext
-                  items={scenes.map(s => s.id)}
-                  strategy={rectSortingStrategy}
-                >
-                  {scenes.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-6 pb-32">
-                      {scenes.map(s => (
-                        <SortableScene
-                          key={s.id}
-                          scene={s}
-                          activeSceneId={activeSceneId}
-                          selectScene={(id) => { selectScene(id); if (window.innerWidth < 768) setActiveMobileTab('studio'); }}
-                        />
-                      ))}
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={scenes.map(s => s.id)} strategy={rectSortingStrategy}>
+                {scenes.length > 0 ? (
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 pb-32 relative z-10">
+                    {scenes.map(s => (
+                      <SortableScene
+                        key={s.id}
+                        scene={s}
+                        activeSceneId={activeSceneId}
+                        selectScene={(id) => { selectScene(id); if (window.innerWidth < 768) setActiveMobileTab('studio'); }}
+                      />
+                    ))}
+                    {/* ADD SCENE BUTTON */}
+                    <button className="h-64 border border-dashed border-white/10 rounded-xl flex flex-col items-center justify-center text-[#555] hover:text-[var(--cinema-gold)] hover:border-[var(--cinema-gold)]/50 hover:bg-[var(--cinema-gold)]/5 transition-all group">
+                      <PlusCircle className="w-8 h-8 mb-2 group-hover:scale-110 transition-transform" />
+                      <span className="text-xs font-bold uppercase tracking-widest">Add New Scene</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="h-full flex flex-col items-center justify-center text-center space-y-6">
+                    <div className="w-20 h-20 rounded-full bg-[var(--cinema-gold)]/5 border border-[var(--cinema-gold)]/20 flex items-center justify-center glow-gold">
+                      <Play className="w-8 h-8 text-[var(--cinema-gold)] ml-1" />
                     </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center h-64 border border-dashed border-white/10 rounded-xl bg-black/20">
-                      <Play className="w-8 h-8 text-white/20 mb-4" />
-                      <p className="text-sm text-white/50 font-medium">No Scenes Detected</p>
-                      <p className="text-xs text-white/30 mt-1">Write a script to begin.</p>
-                      <button onClick={() => setActiveMobileTab('script')} className="md:hidden mt-4 px-4 py-2 bg-white/5 rounded text-xs">Go to Script</button>
+                    <div className="space-y-2">
+                      <h2 className="text-2xl font-bold text-white">Ready to Direct?</h2>
+                      <p className="text-[#777] max-w-sm mx-auto">Start by pasting your script in the left panel or click to create your first scene manually.</p>
                     </div>
-                  )}
-                </SortableContext>
-              </DndContext>
+                    <button
+                      onClick={() => { if (window.innerWidth < 768) setActiveMobileTab('script'); }}
+                      className="px-6 py-3 bg-[var(--cinema-gold)] text-black font-bold uppercase tracking-widest rounded hover:scale-105 transition-transform glow-gold"
+                    >
+                      Start Creating
+                    </button>
+                  </div>
+                )}
+              </SortableContext>
+            </DndContext>
+          </div>
+
+          {/* FOOTER: PLAYBACK */}
+          <div className="h-12 border-t border-white/5 bg-[#0a0a0a] flex items-center justify-between px-6 z-30">
+            <div className="flex items-center gap-4 text-[10px] font-mono text-[#555]">
+              <span className="text-[var(--cinema-teal)]">READY</span>
+              <div className="w-[1px] h-3 bg-white/10" />
+              <span>00:00:00:00</span>
+            </div>
+            <div className="flex items-center gap-6">
+              <button className="text-[#777] hover:text-white transition-colors"><SkipBack className="w-4 h-4" /></button>
+              <button className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-[var(--cinema-gold)] hover:text-black transition-colors"><Play className="w-3 h-3 ml-0.5" /></button>
+              <button className="text-[#777] hover:text-white transition-colors"><SkipForward className="w-4 h-4" /></button>
+            </div>
+            <div className="w-24 bg-white/5 h-1 rounded-full overflow-hidden">
+              <div className="w-[30%] h-full bg-[var(--cinema-gold)]" />
             </div>
           </div>
         </div>
 
-        {/* RIGHT: STUDIO CONTROLS (Desktop: Fixed 360px | Mobile: Full if active) */}
+        {/* RIGHT PANEL: STUDIO (Fixed on Desktop) */}
         <div className={`
-             flex-col bg-[#121212] z-20 shadow-2xl border-l border-white/5
-             md:w-[360px] md:flex md:relative absolute inset-0
-             ${activeMobileTab === 'studio' ? 'flex w-full' : 'hidden'}
+            flex flex-col bg-[var(--director-surface-2)] border-l border-white/5 z-20 shadow-2xl
+            ${activeMobileTab === 'studio' ? 'absolute inset-0 w-full flex' : 'hidden md:flex relative'}
         `}>
-          {/* Mobile Back Button for Studio */}
           <div className="md:hidden h-10 border-b border-white/10 flex items-center px-4 bg-black/40">
-            <button onClick={() => setActiveMobileTab('storyboard')} className="text-[10px] text-white/50 uppercase tracking-widest">← Back to Timeline</button>
+            <button onClick={() => setActiveMobileTab('storyboard')} className="text-[10px] text-white/50 uppercase tracking-widest">← Back</button>
           </div>
 
           <StudioControls
@@ -202,25 +214,18 @@ export default function Home() {
 
       {/* MOBILE BOTTOM NAVIGATION */}
       <div className="md:hidden h-14 bg-[#0a0a0a] border-t border-white/10 flex items-center justify-around z-50 fixed bottom-0 left-0 right-0 pb-safe">
-        <button
-          onClick={() => setActiveMobileTab('script')}
-          className={`flex flex-col items-center gap-1 ${activeMobileTab === 'script' ? 'text-[var(--cinema-teal)]' : 'text-white/40'}`}
-        >
-          <div className="text-[10px] font-bold uppercase tracking-wider">Script</div>
+        <button onClick={() => setActiveMobileTab('script')} className={`flex flex-col items-center gap-1 ${activeMobileTab === 'script' ? 'text-[var(--cinema-gold)]' : 'text-white/40'}`}>
+          <FileText className="w-4 h-4" />
+          <span className="text-[8px] font-bold uppercase">Script</span>
         </button>
-        <button
-          onClick={() => setActiveMobileTab('storyboard')}
-          className={`flex flex-col items-center gap-1 ${activeMobileTab === 'storyboard' ? 'text-[var(--cinema-teal)]' : 'text-white/40'}`}
-        >
+        <button onClick={() => setActiveMobileTab('storyboard')} className={`flex flex-col items-center gap-1 ${activeMobileTab === 'storyboard' ? 'text-[var(--cinema-gold)]' : 'text-white/40'}`}>
           <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center -mt-6 border border-white/10 backdrop-blur-md">
             <Play className="w-4 h-4 fill-current" />
           </div>
         </button>
-        <button
-          onClick={() => setActiveMobileTab('studio')}
-          className={`flex flex-col items-center gap-1 ${activeMobileTab === 'studio' ? 'text-[var(--cinema-teal)]' : 'text-white/40'}`}
-        >
-          <div className="text-[10px] font-bold uppercase tracking-wider">Studio</div>
+        <button onClick={() => setActiveMobileTab('studio')} className={`flex flex-col items-center gap-1 ${activeMobileTab === 'studio' ? 'text-[var(--cinema-gold)]' : 'text-white/40'}`}>
+          <Camera className="w-4 h-4" />
+          <span className="text-[8px] font-bold uppercase">Studio</span>
         </button>
       </div>
     </main>
