@@ -6,15 +6,16 @@ import { Tooltip } from '@/components/ui/Tooltip';
 interface ScriptPanelProps {
     script: string;
     setScript: (s: string) => void;
-    history?: any[];
-    onApplyPreset?: (presetName: string) => void;
     onAnalyze?: () => void;
     onGenerateAll?: () => void;
+    history?: any[];
+    onApplyPreset?: (presetName: string) => void;
+    onExport?: () => void;
 }
 
 type Tab = 'script' | 'history' | 'presets';
 
-export function ScriptPanel({ script, setScript, history = [], onApplyPreset, onAnalyze, onGenerateAll }: ScriptPanelProps) {
+export function ScriptPanel({ script, setScript, onAnalyze, onGenerateAll, history = [], onApplyPreset, onExport }: ScriptPanelProps) {
     const [activeTab, setActiveTab] = useState<Tab>('script');
 
     return (
@@ -95,7 +96,7 @@ export function ScriptPanel({ script, setScript, history = [], onApplyPreset, on
                                 </Tooltip>
                             </div>
                             <button
-                                onClick={() => { }}
+                                onClick={onExport}
                                 aria-label="Export Script and Shot List"
                                 className="w-full py-1.5 flex items-center justify-center gap-2 text-[9px] text-[#555] hover:text-[#f5f5f5] transition-colors border border-transparent hover:border-white/10 rounded"
                             >

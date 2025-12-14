@@ -71,6 +71,29 @@ export default function Home() {
     generateAll // New Action
   } = useDirector();
 
+  // Export Functionality
+  const handleExport = () => {
+    const data = {
+      timestamp: new Date().toISOString(),
+      script,
+      scenes,
+      history
+    };
+
+    // Create and trigger download
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `bria-fibo-project-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    addToast("Project exported successfully!", "success");
+  };
+
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -112,6 +135,7 @@ export default function Home() {
             onApplyPreset={(p) => { applyPreset(p); addToast(`Applied preset: ${p}`, "success"); }}
             onAnalyze={() => { analyzeScript(); addToast("Script analyzed!", "info"); setActiveMobileTab('storyboard'); }}
             onGenerateAll={() => { generateAll(); addToast("Started batch generation", "success"); }}
+            onExport={handleExport}
           />
         </div>
 
