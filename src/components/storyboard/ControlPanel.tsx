@@ -50,6 +50,7 @@ export function StudioControls({ scene, isHybridMode, onGenerate, isGenerating, 
                                 <button
                                     key={t.value}
                                     onClick={() => onUpdateParams?.({ camera: { shotType: t.value as any } })}
+                                    aria-label={`Set Shot Type to ${t.label}`}
                                     className={cn(
                                         "interactive-pill py-3 px-4 rounded-lg text-xs font-medium text-left relative overflow-hidden",
                                         isActive && "active"
@@ -139,6 +140,7 @@ export function StudioControls({ scene, isHybridMode, onGenerate, isGenerating, 
                     <button
                         onClick={onGenerate}
                         disabled={isGenerating}
+                        aria-label="Generate Image"
                         className="w-full py-4 generate-btn flex items-center justify-center gap-2"
                     >
                         {isGenerating ? (

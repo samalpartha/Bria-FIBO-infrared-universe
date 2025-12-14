@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Hash, Sparkles, BookOpen, Clock, Star, FileText } from 'lucide-react';
+import { Hash, Sparkles, BookOpen, Clock, Star, FileText, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tooltip } from '@/components/ui/Tooltip';
 
@@ -23,6 +23,7 @@ export function ScriptPanel({ script, setScript, history = [], onApplyPreset, on
             <div className="h-12 border-b border-white/10 flex items-center bg-black/20">
                 <button
                     onClick={() => setActiveTab('script')}
+                    aria-label="Switch to Script View"
                     className={cn(
                         "flex-1 h-full text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-colors border-b-2",
                         activeTab === 'script' ? "text-[var(--cinema-teal)] border-[var(--cinema-teal)] bg-white/5" : "text-[#555] border-transparent hover:text-white"
@@ -33,6 +34,7 @@ export function ScriptPanel({ script, setScript, history = [], onApplyPreset, on
                 <div className="w-[1px] h-4 bg-white/10" />
                 <button
                     onClick={() => setActiveTab('history')}
+                    aria-label="Switch to History View"
                     className={cn(
                         "flex-1 h-full text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-colors border-b-2",
                         activeTab === 'history' ? "text-[var(--cinema-teal)] border-[var(--cinema-teal)] bg-white/5" : "text-[#555] border-transparent hover:text-white"
@@ -43,6 +45,7 @@ export function ScriptPanel({ script, setScript, history = [], onApplyPreset, on
                 <div className="w-[1px] h-4 bg-white/10" />
                 <button
                     onClick={() => setActiveTab('presets')}
+                    aria-label="Switch to Presets View"
                     className={cn(
                         "flex-1 h-full text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-colors border-b-2",
                         activeTab === 'presets' ? "text-[var(--cinema-teal)] border-[var(--cinema-teal)] bg-white/5" : "text-[#555] border-transparent hover:text-white"
@@ -75,6 +78,7 @@ export function ScriptPanel({ script, setScript, history = [], onApplyPreset, on
                                 <Tooltip content="Parse script into scenes automatically" side="top">
                                     <button
                                         onClick={() => onAnalyze?.()}
+                                        aria-label="Analyze Script"
                                         className="w-full py-2 bg-[var(--cinema-teal)]/10 hover:bg-[var(--cinema-teal)]/20 border border-[var(--cinema-teal)]/30 text-[var(--cinema-teal)] rounded flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-all hover:scale-[1.02]"
                                     >
                                         <Sparkles className="w-3 h-3" /> Analyze
@@ -83,12 +87,20 @@ export function ScriptPanel({ script, setScript, history = [], onApplyPreset, on
                                 <Tooltip content="Generate images for all scenes in batch" side="top">
                                     <button
                                         onClick={() => onGenerateAll?.()}
+                                        aria-label="Render All Scenes"
                                         className="w-full py-2 bg-[var(--cinema-gold)]/10 hover:bg-[var(--cinema-gold)]/20 border border-[var(--cinema-gold)]/30 text-[var(--cinema-gold)] rounded flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-all hover:scale-[1.02]"
                                     >
                                         <Sparkles className="w-3 h-3" /> Render All
                                     </button>
                                 </Tooltip>
                             </div>
+                            <button
+                                onClick={() => { }}
+                                aria-label="Export Script and Shot List"
+                                className="w-full py-1.5 flex items-center justify-center gap-2 text-[9px] text-[#555] hover:text-[#f5f5f5] transition-colors border border-transparent hover:border-white/10 rounded"
+                            >
+                                <Download className="w-3 h-3" /> Export to PDF/JSON
+                            </button>
                         </div>
                     </div>
                 )}

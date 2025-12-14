@@ -25,12 +25,17 @@ export function Navbar() {
                 <Link
                     href="https://github.com/samalpartha/Bria-FIBO-infrared-universe"
                     target="_blank"
+                    aria-label="View on GitHub"
                     className="p-2 text-white/50 hover:text-white transition-colors"
                 >
                     <Github className="w-4 h-4" />
                 </Link>
 
-                <div className="w-8 h-8 rounded-full bg-[#151515] border border-white/10 flex items-center justify-center text-[#777] cursor-pointer hover:border-[var(--cinema-teal)] transition-colors">
+                <div
+                    role="button"
+                    aria-label="User Profile"
+                    className="w-8 h-8 rounded-full bg-[#151515] border border-white/10 flex items-center justify-center text-[#777] cursor-pointer hover:border-[var(--cinema-teal)] transition-colors"
+                >
                     <User className="w-4 h-4" />
                 </div>
             </div>
