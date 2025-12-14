@@ -13,6 +13,7 @@
 - **🔐 Hybrid Structure Lock**: Unlocks "Video-like consistency" for image generation. Locks the composition of one scene (via Bria V1) while rendering high-fidelity details with FIBO V2 parameters.
 - **🎨 Pro Color Grading**: Direct access to FIBO's color palette and grading controls (HDR, Cinematic, Noir).
 - **⚡ Real-time Control**: Tweak parameters via a high-end, glassmorphism UI without writing a single text prompt.
+- **🚀 Agentic Workflow**: Uses an intelligent Director Agent to break down scripts into shots and infer initial visual parameters.
 
 ## Getting Started
 
@@ -42,6 +43,7 @@ Check out [WALKTHROUGH.md](WALKTHROUGH.md) for a deep dive into the Agentic Work
 - **Engine**: Bria FIBO V2 + Bria V1 (Hybrid)
 - **Frontend**: Next.js 14, TailwindCSS, Framer Motion
 - **Language**: TypeScript
+- **Best Practices**: Strict Linting, Component Architecture, Type Safety
 
 ---
 *Built for the Bria FIBO AI Challenge 2024.*

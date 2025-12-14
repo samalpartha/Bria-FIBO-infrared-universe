@@ -23,7 +23,7 @@ export interface FiboParameters {
     composition?: CompositionSettings;
     subject?: SubjectSettings;
     style?: StyleSettings;
-    structured_prompt?: any; // Decoupled workflow JSON
+    structured_prompt?: Record<string, unknown>; // Decoupled workflow JSON
     // Hybrid V1/V2 Logic
     structure_image_url?: string;
     structure_ref_influence?: number;
@@ -31,6 +31,7 @@ export interface FiboParameters {
 }
 
 export interface CameraSettings {
+    shotType?: 'eye_level' | 'low_angle' | 'high_angle' | 'bird_eye_view' | 'worm_eye_view' | 'dutch_angle' | 'wide_shot' | 'medium_shot' | 'close_up' | 'long_shot' | 'extreme_long_shot' | 'macro';
     angle?: 'eye_level' | 'low_angle' | 'high_angle' | 'bird_eye_view' | 'worm_eye_view' | 'dutch_angle';
     fov?: number;
     distance?: 'close_up' | 'medium_shot' | 'long_shot' | 'extreme_long_shot' | 'macro';
@@ -41,6 +42,7 @@ export interface CameraSettings {
 }
 
 export interface LightingSettings {
+    style?: 'natural' | 'studio' | 'cinematic' | 'noir' | 'neon' | 'ambient' | 'volumetric' | 'dramatic';
     type?: 'natural' | 'studio' | 'cinematic' | 'noir' | 'neon' | 'ambient' | 'volumetric';
     direction?: 'front' | 'side' | 'back' | 'top' | 'rim' | 'silhouette';
     intensity?: 'dim' | 'soft' | 'hard' | 'bright';
@@ -88,5 +90,5 @@ export interface Scene {
     status: 'pending' | 'generating' | 'completed' | 'failed';
     imageUrl?: string;
     backgroundRemovedUrl?: string;
-    fiboStructuredPrompt?: any; // The full Bria V2 structured prompt JSON
+    fiboStructuredPrompt?: Record<string, unknown>; // The full Bria V2 structured prompt JSON
 }

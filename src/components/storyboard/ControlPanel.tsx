@@ -1,230 +1,150 @@
+import React, { useState } from 'react';
+import { Camera, Sun, Palette, Zap } from 'lucide-react';
+import { Scene, FiboParameters } from '@/lib/types';
+import { cn } from '@/lib/utils';
 
-import { Scene, FiboParameters } from "@/lib/types";
-import { Camera, Film, Sparkles, SunMedium, Wand2, Lock } from "lucide-react";
-import { cn } from "@/lib/utils";
-
-interface ControlPanelProps {
-    scene: Scene;
-    onUpdateParams: (params: FiboParameters) => void;
-    onGenerate: () => void;
-    onFetchJson: () => void;
+interface StudioControlsProps {
+    scene?: Scene;
     isHybridMode?: boolean;
+    onGenerate?: () => void;
+    isGenerating?: boolean;
+    onUpdateParams?: (params: Partial<FiboParameters>) => void;
 }
 
-export function ControlPanel({ scene, onUpdateParams, onGenerate, onFetchJson, isHybridMode }: ControlPanelProps) {
-    const parameters = scene.parameters;
-
-    // Helper to update specific sections safely
-    const updateParams = (section: keyof FiboParameters, value: any) => {
-        onUpdateParams({
-            ...parameters,
-            [section]: value
-        });
-    };
-
+export function StudioControls({ scene, isHybridMode, onGenerate, isGenerating, onUpdateParams }: StudioControlsProps) {
     return (
-        <div className="h-full flex flex-col bg-black/40 backdrop-blur-xl border-l border-white/5">
-            <header className="p-6 border-b border-white/5 bg-white/5">
-                <h2 className="font-bold text-sm text-white uppercase tracking-widest flex items-center gap-2">
-                    <Wand2 className="w-4 h-4 text-primary" />
-                    Parameter Control
-                </h2>
-                <p className="text-[10px] text-gray-500 mt-1 font-mono">FIBO ENGINE V2 • {scene.id}</p>
-            </header>
+        <div className="w-full h-full flex flex-col control-panel overflow-hidden border-none text-[#f5f5f5]">
+            {/* Header */}
+            <div className="h-12 px-5 flex items-center justify-between border-b border-white/10 bg-black/20">
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#b0b0b0]">Studio Controls</span>
 
-            {isHybridMode && (
-                <div className="bg-blue-500/10 border-b border-blue-500/20 p-3 flex items-center gap-2">
-                    <div className="p-1 bg-blue-500 text-white rounded-full">
-                        <Lock className="w-3 h-3" />
+                {/* Hybrid Mode Badge */}
+                {isHybridMode && (
+                    <div className="flex items-center gap-1.5 px-2 py-0.5 bg-[var(--cinema-gold)]/10 border border-[var(--cinema-gold)]/20 rounded text-[9px] text-[var(--cinema-gold)] animate-pulse">
+                        <Zap className="w-3 h-3" /> Hybrid
                     </div>
-                    <div>
-                        <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Hybrid Pipeline Active</p>
-                        <p className="text-[9px] text-blue-300/70">Structure is locked to a reference scene. Camera/Composition settings will be overridden by the V1 Reimagine engine.</p>
-                    </div>
-                </div>
-            )}
-
-            <div className="flex-1 overflow-y-auto p-6 space-y-8">
-
-                {/* Render Quality Toggle */}
-                <div className="flex items-center justify-between bg-white/5 p-3 rounded-lg border border-white/5">
-                    <div className="flex items-center gap-2">
-                        <Sparkles className={cn("w-4 h-4", parameters.fastMode ? "text-gray-400" : "text-primary")} />
-                        <div>
-                            <p className="text-xs font-bold text-gray-200">Render Quality</p>
-                            <p className="text-[10px] text-muted-foreground">{parameters.fastMode ? "Draft (Lite Model)" : "Cinematic (Pro Model)"}</p>
-                        </div>
-                    </div>
-                    <button
-                        onClick={() => onUpdateParams({ ...parameters, fastMode: !parameters.fastMode })}
-                        className={cn(
-                            "px-3 py-1 rounded text-[10px] font-bold uppercase transition-colors border",
-                            parameters.fastMode
-                                ? "bg-white/10 text-gray-300 border-white/10"
-                                : "bg-primary/20 text-primary border-primary/50"
-                        )}
-                    >
-                        {parameters.fastMode ? "Draft" : "HQ"}
-                    </button>
-                </div>
-
-                {/* Visual Prompt Section */}
-                <section className="space-y-3">
-                    <h3 className="text-[10px] font-bold text-primary uppercase tracking-widest border-b border-white/5 pb-1">Visual Prompt</h3>
-                    <textarea
-                        className="w-full h-24 bg-[#0a0a0a] p-3 rounded text-xs text-gray-300 outline-none border border-white/10 focus:border-primary/50 transition-colors font-serif resize-none"
-                        value={scene.visualPrompt}
-                        readOnly // For now, we don't edit this back up, but we could
-                    />
-                </section>
-
-                {/* Camera Control */}
-                <section className="space-y-3">
-                    <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                        <Camera className="w-3 h-3" /> Camera & Lens
-                    </h3>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1">
-                            <label className="text-[10px] text-gray-400">Shot Type</label>
-                            <select
-                                className="w-full bg-white/5 text-xs text-white p-2 rounded appearance-none border border-white/5 focus:border-primary/50 outline-none"
-                                value={parameters.camera?.distance || ''}
-                                onChange={(e) => updateParams('camera', { ...parameters.camera, distance: e.target.value })}
-                            >
-                                <option value="">Auto</option>
-                                <option value="close_up">Close Up</option>
-                                <option value="medium_shot">Medium Shot</option>
-                                <option value="long_shot">Wide Shot</option>
-                                <option value="extreme_long_shot">Extreme Wide</option>
-                            </select>
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-[10px] text-gray-400">Angle</label>
-                            <select
-                                className="w-full bg-white/5 text-xs text-white p-2 rounded appearance-none border border-white/5 focus:border-primary/50 outline-none"
-                                value={parameters.camera?.angle || ''}
-                                onChange={(e) => updateParams('camera', { ...parameters.camera, angle: e.target.value })}
-                            >
-                                <option value="">Auto</option>
-                                <option value="eye_level">Eye Level</option>
-                                <option value="low_angle">Low Angle</option>
-                                <option value="high_angle">High Angle</option>
-                                <option value="bird_eye_view">Bird's Eye</option>
-                            </select>
-                        </div>
-                    </div>
-                </section>
-
-                {/* Lighting Control */}
-                <section className="space-y-3">
-                    <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                        <SunMedium className="w-3 h-3" /> Lighting
-                    </h3>
-                    <div className="space-y-1">
-                        <label className="text-[10px] text-gray-400">Style / Type</label>
-                        <select
-                            className="w-full bg-white/5 text-xs text-white p-2 rounded appearance-none border border-white/5 focus:border-primary/50 outline-none"
-                            // Map 'style' to 'type' since Interface defines 'type'
-                            value={parameters.lighting?.type || ''}
-                            onChange={(e) => updateParams('lighting', { ...parameters.lighting, type: e.target.value })}
-                        >
-                            <option value="">Auto</option>
-                            <option value="natural">Natural</option>
-                            <option value="cinematic">Cinematic</option>
-                            <option value="studio">Studio</option>
-                            <option value="neon">Neon / Cyberpunk</option>
-                            <option value="dramatic">Dramatic</option>
-                        </select>
-                    </div>
-                </section>
-
-                {/* Color & Grading Control */}
-                <section className="space-y-3">
-                    <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                        <span className="w-3 h-3 rounded-full bg-gradient-to-br from-pink-500 to-purple-500" /> Color & Mood
-                    </h3>
-                    <div className="space-y-3">
-                        <div className="space-y-1">
-                            <label className="text-[10px] text-gray-400">Color Grading</label>
-                            <select
-                                className="w-full bg-white/5 text-xs text-white p-2 rounded appearance-none border border-white/5 focus:border-primary/50 outline-none"
-                                value={parameters.color?.grading || ''}
-                                onChange={(e) => updateParams('color', { ...parameters.color, grading: e.target.value })}
-                            >
-                                <option value="">Auto</option>
-                                <option value="cinematic">Cinematic</option>
-                                <option value="hdr">HDR (High Dynamic Range)</option>
-                                <option value="vintage">Vintage / Retro</option>
-                                <option value="black_and_white">Black & White</option>
-                                <option value="muted">Muted / Desaturated</option>
-                                <option value="vibrant">Vibrant / Neon</option>
-                                <option value="pastel">Pastel</option>
-                            </select>
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-[10px] text-gray-400">Palette Override (Top 3 Colors)</label>
-                            <input
-                                type="text"
-                                className="w-full bg-white/5 text-xs text-white p-2 rounded border border-white/5 focus:border-primary/50 outline-none placeholder:text-gray-700"
-                                placeholder="#ff0000, teal, gold"
-                                value={parameters.color?.palette?.join(', ') || ''}
-                                onChange={(e) => {
-                                    const val = e.target.value;
-                                    const colors = val ? val.split(',').map(s => s.trim()) : undefined;
-                                    updateParams('color', { ...parameters.color, palette: colors });
-                                }}
-                            />
-                        </div>
-                    </div>
-                </section>
-
-                {/* JSON Preview (for "Best JSON-Native" requirement) */}
-                <section className="space-y-3 pt-4 border-t border-white/5">
-                    <div className="flex items-center justify-between">
-                        <h3 className="text-[10px] font-bold text-primary uppercase tracking-widest">FIBO Structured Prompt (JSON)</h3>
-                        <button
-                            onClick={onFetchJson}
-                            className="text-[10px] px-3 py-1 bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 rounded-full transition-all flex items-center gap-1 hover:shadow-[0_0_10px_rgba(236,72,153,0.3)]"
-                            title="Fetch the real JSON structure from Bria V2 VLM"
-                        >
-                            <Sparkles className="w-3 h-3" /> Fetch Logic
-                        </button>
-                    </div>
-                    <div className="relative group">
-                        <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/10 to-purple-600/10 rounded-lg blur opacity-0 group-hover:opacity-100 transition duration-500"></div>
-                        <textarea
-                            className="relative w-full h-48 bg-[#050505] p-3 rounded text-[10px] font-mono text-green-400/80 resize-none border border-white/10 focus:border-primary/50 outline-none"
-                            value={parameters.structured_prompt ? JSON.stringify(parameters.structured_prompt, null, 2) : JSON.stringify(parameters, null, 2)}
-                            onChange={(e) => {
-                                try {
-                                    const parsed = JSON.parse(e.target.value);
-                                    if (parsed.objects || parsed.short_description) {
-                                        onUpdateParams({ ...parameters, structured_prompt: parsed });
-                                    } else {
-                                        onUpdateParams({ ...parameters, structured_prompt: parsed });
-                                    }
-                                } catch (e) {
-                                    console.log("Invalid JSON while typing");
-                                }
-                            }}
-                        />
-                    </div>
-                    <p className="text-[10px] text-gray-500 mt-1 flex items-center gap-1">
-                        {parameters.structured_prompt ? <span className="text-green-500">●</span> : <span className="text-yellow-500">○</span>}
-                        {parameters.structured_prompt ? "Decoupled FIBO JSON Active" : "Inferred Logic (Fetch for Full JSON)"}
-                    </p>
-                </section>
-
+                )}
             </div>
 
-            <div className="p-6 border-t border-white/5 bg-black/20">
+            {/* Scrollable Controls */}
+            <div className="flex-1 p-5 space-y-8 overflow-y-auto custom-scrollbar">
+
+                {/* 1. Camera Section */}
+                <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-[var(--cinema-teal)] mb-1">
+                        <Camera className="w-3 h-3" />
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-[#f5f5f5]">Camera</label>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                        {[
+                            { label: 'Wide', value: 'wide_shot' },
+                            { label: 'Medium', value: 'medium_shot' },
+                            { label: 'Close-up', value: 'close_up' },
+                            { label: 'Macro', value: 'macro' }
+                        ].map((t) => {
+                            const isActive = scene?.parameters?.camera?.shotType === t.value;
+                            return (
+                                <button
+                                    key={t.value}
+                                    onClick={() => onUpdateParams?.({ camera: { shotType: t.value as any } })}
+                                    className={cn(
+                                        "interactive-pill py-3 px-4 rounded-lg text-xs font-medium text-left relative overflow-hidden",
+                                        isActive && "active"
+                                    )}
+                                >
+                                    <span className="relative z-10">{t.label}</span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* 2. Lighting Section */}
+                <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-[var(--cinema-gold)] mb-1">
+                        <Sun className="w-3 h-3" />
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-[#f5f5f5]">Lighting</label>
+                    </div>
+                    <div className="grid grid-cols-4 gap-3">
+                        {[
+                            { color: '#ffffff', label: 'Day', value: 'natural' },
+                            { color: '#3b82f6', label: 'Blue', value: 'cinematic' },
+                            { color: '#f97316', label: 'Warm', value: 'volumetric' },
+                            { color: '#9333ea', label: 'Neon', value: 'neon' }
+                        ].map((c, i) => {
+                            const isActive = scene?.parameters?.lighting?.type === c.value;
+                            return (
+                                <div key={i}
+                                    className="group cursor-pointer flex flex-col items-center gap-2"
+                                    onClick={() => onUpdateParams?.({ lighting: { type: c.value as any } })}
+                                >
+                                    <div
+                                        className={cn(
+                                            "w-full aspect-square rounded-full border border-white/10 transition-all duration-300 shadow-lg",
+                                            isActive ? "ring-2 ring-[var(--cinema-gold)] scale-110" : "hover:border-white/50"
+                                        )}
+                                        style={{ backgroundColor: c.color, opacity: isActive ? 1 : 0.7 }}
+                                    />
+                                    <span className={cn(
+                                        "text-[9px] uppercase tracking-wider transition-colors",
+                                        isActive ? "text-white font-bold" : "text-[#b0b0b0]"
+                                    )}>{c.label}</span>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* 3. Style Section */}
+                <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-purple-400 mb-1">
+                        <Palette className="w-3 h-3" />
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-[#f5f5f5]">Style</label>
+                    </div>
+                    <div className="space-y-2">
+                        <div
+                            onClick={() => onUpdateParams?.({ style: { atmosphere: 'film_grain' } })}
+                            className={cn(
+                                "flex items-center justify-between p-3 rounded-xl border border-white/10 cursor-pointer transition-all hover:bg-white/5",
+                                scene?.parameters?.style?.atmosphere === 'film_grain' && "bg-[var(--cinema-teal)]/10 border-[var(--cinema-teal)]"
+                            )}>
+                            <span className={cn("text-xs font-medium", scene?.parameters?.style?.atmosphere === 'film_grain' ? "text-white" : "text-[#b0b0b0]")}>Film Grain</span>
+                            <div className={cn(
+                                "w-3 h-3 rounded-full border border-white/20 transition-colors",
+                                scene?.parameters?.style?.atmosphere === 'film_grain' ? "bg-[var(--cinema-teal)] border-[var(--cinema-teal)] shadow-[0_0_10px_var(--cinema-teal)]" : "bg-transparent"
+                            )} />
+                        </div>
+                        <div
+                            onClick={() => onUpdateParams?.({ style: { atmosphere: 'bloom' } })}
+                            className={cn(
+                                "flex items-center justify-between p-3 rounded-xl border border-white/10 cursor-pointer transition-all hover:bg-white/5",
+                                scene?.parameters?.style?.atmosphere === 'bloom' && "bg-[var(--cinema-teal)]/10 border-[var(--cinema-teal)]"
+                            )}>
+                            <span className={cn("text-xs font-medium", scene?.parameters?.style?.atmosphere === 'bloom' ? "text-white" : "text-[#b0b0b0]")}>Bloom</span>
+                            <div className={cn(
+                                "w-3 h-3 rounded-full border border-white/20 transition-colors",
+                                scene?.parameters?.style?.atmosphere === 'bloom' ? "bg-[var(--cinema-teal)] border-[var(--cinema-teal)] shadow-[0_0_10px_var(--cinema-teal)]" : "bg-transparent"
+                            )} />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Footer Action */}
+            <div className="p-5 border-t border-white/10 bg-black/20">
                 <button
                     onClick={onGenerate}
-                    className="w-full bg-primary hover:bg-primary/90 text-white py-4 rounded-lg font-bold shadow-[0_0_20px_rgba(236,72,153,0.3)] hover:shadow-[0_0_30px_rgba(236,72,153,0.5)] transition-all flex items-center justify-center gap-2 uppercase tracking-widest text-sm relative overflow-hidden group"
+                    disabled={isGenerating}
+                    className="w-full py-4 generate-btn flex items-center justify-center gap-2"
                 >
-                    <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-                    <Film className="w-4 h-4 relative z-10" />
-                    <span className="relative z-10">Generate Shot</span>
+                    {isGenerating ? (
+                        <>
+                            <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                            Generating...
+                        </>
+                    ) : (
+                        "Generate Shot"
+                    )}
                 </button>
             </div>
         </div>

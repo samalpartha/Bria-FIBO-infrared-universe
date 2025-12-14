@@ -1,7 +1,4 @@
-import { FiboPrompt, FiboParameters, GeneratedImage } from './types';
-
-// Placeholder for the actual Bria API Endpoint
-const BRIA_API_URL = 'https://api.bria.ai/v1/generation/fibo'; // Hypothetical endpoint
+import { FiboParameters, GeneratedImage } from './types';
 
 export class BriaClient {
     private apiKey: string;
@@ -12,7 +9,7 @@ export class BriaClient {
         this.baseUrl = 'https://engine.prod.bria-api.com/v2/image/generate';
     }
 
-    async generateStructuredPrompt(prompt: string): Promise<any> {
+    async generateStructuredPrompt(prompt: string): Promise<Record<string, unknown>> {
         console.log("Generating Structured Prompt...");
         const url = 'https://engine.prod.bria-api.com/v2/structured_prompt/generate';
 
@@ -31,8 +28,6 @@ export class BriaClient {
                 throw new Error(`Structured Prompt Gen Error (${response.status}): ${errorText}`);
             }
 
-            // Returns the JSON string or object? Docs say "returns the JSON string".
-            // Typically generic API returns JSON object. Let's assume object.
             const data = await response.json();
             return data;
         } catch (error) {
@@ -41,17 +36,48 @@ export class BriaClient {
         }
     }
 
-    async reimagine(prompt: string, structureImageUrl: string, influence: number = 0.7): Promise<GeneratedImage> {
+    private enrichPromptWithParams(basePrompt: string, params: FiboParameters): string {
+        const descriptions: string[] = [basePrompt];
+
+        // Append stylistic descriptors from parameters
+        if (params.lighting) {
+            if (params.lighting.type) descriptions.push(`${params.lighting.type} lighting`);
+            if (params.lighting.direction) descriptions.push(`${params.lighting.direction} light`);
+            if (params.lighting.color_temperature) descriptions.push(`${params.lighting.color_temperature} tones`);
+        }
+
+        if (params.camera) {
+            if (params.camera.angle) descriptions.push(params.camera.angle.replace('_', ' '));
+            if (params.camera.distance) descriptions.push(params.camera.distance.replace('_', ' '));
+        }
+
+        if (params.style?.medium) {
+            descriptions.push(`in the style of ${params.style.medium.replace('_', ' ')}`);
+        }
+
+        if (params.color?.grading) {
+            descriptions.push(`${params.color.grading} color grading`);
+        }
+
+        return descriptions.join(', ');
+    }
+
+    async reimagine(prompt: string, structureImageUrl: string, influence: number = 0.7, parameters?: FiboParameters): Promise<GeneratedImage> {
         console.log("Generating with Bria V1 Reimagine (Structure Lock)...");
+
+        // ENHANCEMENT: Enrich the prompt with the granular parameters since V1 doesn't support them natively
+        const finalPrompt = parameters ? this.enrichPromptWithParams(prompt, parameters) : prompt;
+        console.log(`Enriched Prompt for V1: "${finalPrompt}"`);
+
         const url = 'https://engine.prod.bria-api.com/v1/reimagine';
 
         const payload = {
-            prompt,
+            prompt: finalPrompt,
             structure_image_url: structureImageUrl,
             structure_ref_influence: influence,
             num_results: 1,
-            sync: true, // V1 usually supports sync for single image
-            fast: false // Use high quality for structure lock
+            sync: true,
+            fast: false
         };
 
         try {
@@ -70,8 +96,6 @@ export class BriaClient {
             }
 
             const data = await response.json();
-            // V1 response format: { result: [{ urls: [...], ... }] }
-            // Spec says: result array of objects.
 
             let imageUrl: string | undefined;
             if (data.result && data.result[0]) {
@@ -84,64 +108,48 @@ export class BriaClient {
 
             if (!imageUrl) {
                 console.warn("No image URL in Reimagine response", data);
-                // Fallback to mock if API fails during Hackathon demo
-                return this.mockGeneration(prompt, { structure_image_url: structureImageUrl } as any);
+                return this.mockGeneration(finalPrompt, { ...parameters, structure_image_url: structureImageUrl });
             }
 
             return {
                 id: data.result[0].uuid || crypto.randomUUID(),
                 url: imageUrl,
-                prompt,
-                parameters: { structure_image_url: structureImageUrl, structure_ref_influence: influence, style: { medium: 'cinematic_render' } } as any // Adapting V1 to V2 types loosely
+                prompt: finalPrompt,
+                parameters: { ...parameters, structure_image_url: structureImageUrl, structure_ref_influence: influence }
             };
 
         } catch (error) {
             console.error("Reimagine generation failed:", error);
             // Fallback for demo stability
-            return this.mockGeneration(prompt, { structure_image_url: structureImageUrl } as any);
+            return this.mockGeneration(finalPrompt, { ...parameters, structure_image_url: structureImageUrl });
         }
     }
 
-    async generateImage(prompt: string, parameters: FiboParameters & { structured_prompt?: any, fastMode?: boolean }): Promise<GeneratedImage> {
+    async generateImage(prompt: string, parameters: FiboParameters & { structured_prompt?: Record<string, unknown>, fastMode?: boolean }): Promise<GeneratedImage> {
         // Hybrid V1 Router: If structure lock is active, use Reimagine endpoint
         if (parameters.structure_image_url) {
-            return this.reimagine(prompt, parameters.structure_image_url, parameters.structure_ref_influence);
+            return this.reimagine(prompt, parameters.structure_image_url, parameters.structure_ref_influence, parameters);
         }
 
-        console.log(`Generating with Bria FIBO V2 (${parameters.fastMode ? 'LITE' : 'STANDARD'})...`);
+        console.log(`Generating with Bria FIBO V2 (PROXY)...`);
 
-        const endpoint = parameters.fastMode
-            ? 'https://engine.prod.bria-api.com/v2/image/generate/lite'
-            : 'https://engine.prod.bria-api.com/v2/image/generate';
+        // Use our own Next.js API Proxy to avoid CORS
+        const endpoint = '/api/generate';
 
         // Construct payload for V2
-        // Note: Lite endpoint might strictly want 'model' or might not care.
-        // We filter out 'fastMode' from payload to be safe.
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { fastMode, ...restParams } = parameters;
 
-        let payload: any = {
+        const payload: Record<string, unknown> = {
             num_results: 1,
             sync: true, // Try sync first
             model: "fibo",
             ...restParams
         };
 
-        // If we have a decoupled structured_prompt, use it INSTEAD of the text prompt for the strongest control
-        // Documentation says: 
-        // "structured_prompt (Recreates a previous image exactly...)"
-        // "structured_prompt + prompt (Refines...)"
-        // "prompt (Generates new...)"
-
         if (parameters.structured_prompt) {
             console.log("Using decoupled structured_prompt flow");
             payload.structured_prompt = parameters.structured_prompt;
-            // If we want exact recreation, we might OMIT prompt, or include it for refinement.
-            // For now, if the user manually fetched JSON, they likely want that JSON respected.
-            // Let's keep 'prompt' in payload only if it's meant to refine, but here we probably want the JSON to match.
-            // However, the function arg 'prompt' is required. 
-            // Let's assume: if structured_prompt is present, it takes precedence.
-            // But strict mode might require removing 'prompt' to avoid "refinement" behavior if not intended.
-            // Let's leave 'prompt' in, assuming the user might want refinement if they changed the text too.
             payload.prompt = prompt;
         } else {
             payload.prompt = prompt;
@@ -151,8 +159,7 @@ export class BriaClient {
             const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'api_token': this.apiKey
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(payload)
             });
@@ -166,11 +173,6 @@ export class BriaClient {
 
             // Check for immediate result (Sync mode)
             let imageUrl = data.image_urls?.[0] || data.output_url || data.result?.[0];
-
-            // If async, we might get a request_id but no image yet, unless sync:true worked.
-            // If sync:true is ignored or failed, we might need to poll.
-            // However, for this hackathon, let's assume sync:true works or sufficient for demo.
-            // If data.status_url is present and no image, we should poll.
 
             if (!imageUrl && data.id) {
                 console.log("Sync mode didn't return image, polling...", data.id);
@@ -205,8 +207,6 @@ export class BriaClient {
         for (let i = 0; i < maxAttempts; i++) {
             await new Promise(r => setTimeout(r, delay));
             try {
-                // Status endpoint guess: /v2/status/{id} which likely maps to GET ...
-                // But usually the API returns a status_url. I'll guess standard Bria status pattern
                 const response = await fetch(`https://engine.prod.bria-api.com/v2/result/${requestId}`, {
                     headers: { 'api_token': this.apiKey }
                 });

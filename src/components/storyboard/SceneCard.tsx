@@ -1,117 +1,151 @@
-
 import { Scene } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { Crop, Film, Image as ImageIcon, Loader2, Lock, Unlock } from "lucide-react";
+import { Crop, Image as ImageIcon, Loader2, Lock, Wand2, Monitor, Grid } from "lucide-react";
+import Image from "next/image";
+import { motion } from "framer-motion";
 import { useState } from "react";
 
 interface SceneCardProps {
     scene: Scene;
-    isSelected: boolean;
+    isSelected?: boolean;
     isStructureLocked?: boolean;
-    onClick: () => void;
-    onRemoveBg: (scene: Scene) => void;
+    onClick?: () => void;
+    onRemoveBg?: (scene: Scene) => void;
     onToggleLock?: (scene: Scene) => void;
 }
 
 export function SceneCard({ scene, isSelected, isStructureLocked, onClick, onRemoveBg, onToggleLock }: SceneCardProps) {
-    const [isRemovingBg, setIsRemovingBg] = useState(false);
+    const [showSafeTitle, setShowSafeTitle] = useState(false);
 
-    const handleRemoveBg = async (e: React.MouseEvent) => {
-        e.stopPropagation();
-        setIsRemovingBg(true);
-        await onRemoveBg(scene);
-        setIsRemovingBg(false);
-    };
+    const isGenerating = scene.status === 'generating';
+    const hasImage = !!scene.imageUrl;
 
     return (
-        <div
+        <motion.div
+            layout
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
             onClick={onClick}
             className={cn(
-                "group relative bg-[#0a0a0a] border border-white/5 rounded-lg overflow-hidden transition-all duration-300 hover:scale-[1.01] hover:shadow-2xl hover:shadow-primary/5 cursor-pointer max-w-sm w-full",
-                isSelected ? "ring-1 ring-primary border-primary/50 shadow-lg shadow-primary/10" : "hover:border-white/10"
+                "cinema-card relative group overflow-hidden cursor-pointer transition-all duration-300 flex flex-col hover:shadow-[0_0_30px_rgba(0,0,0,0.5)]",
+                isSelected ? "border-[var(--cinema-teal)] ring-1 ring-[var(--cinema-teal)] shadow-2xl shadow-[var(--cinema-teal)]/10" : "hover:border-white/20"
             )}
         >
-            {/* Holographic Header Bar */}
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary/0 via-primary/50 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity" />
-
-            <div className="p-4 space-y-3">
-                <div className="flex items-start justify-between gap-4">
-                    <h3 className="font-bold text-sm text-gray-200 leading-tight font-serif line-clamp-2 pt-1 h-10">
-                        {scene.visualPrompt}
-                    </h3>
-                    <div className="flex shrink-0 gap-1">
-                        {/* Status Badge */}
-                        <div className={cn(
-                            "px-2 py-0.5 rounded text-[10px] font-mono tracking-wide uppercase border",
-                            scene.status === 'completed' ? "bg-green-500/10 text-green-500 border-green-500/20" :
-                                scene.status === 'generating' ? "bg-yellow-500/10 text-yellow-500 border-yellow-500/20 animate-pulse" :
-                                    "bg-white/5 text-gray-500 border-white/5"
-                        )}>
-                            {scene.status}
-                        </div>
+            {/* --- IMAGE AREA --- */}
+            <div className="relative aspect-video w-full bg-black overflow-hidden">
+                {/* Status Pill (Floating) */}
+                <div className="absolute top-3 right-3 z-30 flex gap-2">
+                    <div className={cn(
+                        "px-2 py-1 rounded-md text-[9px] font-bold uppercase tracking-widest backdrop-blur-md border shadow-sm flex items-center gap-1.5",
+                        scene.status === 'completed' ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" :
+                            scene.status === 'generating' ? "bg-[var(--cinema-teal)]/10 text-[var(--cinema-teal)] border-[var(--cinema-teal)]/20 shadow-[0_0_10px_rgba(50,184,198,0.2)]" :
+                                "bg-white/5 text-white/50 border-white/10"
+                    )}>
+                        {scene.status === 'generating' && <Loader2 className="w-2.5 h-2.5 animate-spin" />}
+                        {scene.status}
                     </div>
                 </div>
 
-                {/* Cyberpunk Image Container */}
-                <div className="aspect-video w-full bg-black rounded border border-white/5 overflow-hidden relative flex items-center justify-center group/image">
-                    {/* Corner accents */}
-                    <div className="absolute top-2 left-2 w-2 h-2 border-l border-t border-white/20 z-20" />
-                    <div className="absolute bottom-2 right-2 w-2 h-2 border-r border-b border-white/20 z-20" />
+                {/* Tools Overlay (Hover) */}
+                <div className="absolute top-3 left-3 z-30 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                        onClick={(e) => { e.stopPropagation(); setShowSafeTitle(!showSafeTitle); }}
+                        className={cn(
+                            "p-1.5 rounded-md backdrop-blur-md border transition-all",
+                            showSafeTitle ? "bg-[var(--cinema-teal)] text-black border-[var(--cinema-teal)]" : "bg-black/40 text-white/70 border-white/10 hover:text-white"
+                        )}
+                        title="Toggle Safe Title"
+                    >
+                        <Monitor className="w-3 h-3" />
+                    </button>
+                    <button className="p-1.5 bg-black/40 backdrop-blur-md text-white/70 hover:text-white rounded-md border border-white/10" title="Grid">
+                        <Grid className="w-3 h-3" />
+                    </button>
+                </div>
 
-                    {scene.backgroundRemovedUrl ? (
-                        <div className="relative w-full h-full bg-[url('https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Transparent_square.svg/1024px-Transparent_square.svg.png')] bg-repeat bg-[length:20px_20px]">
-                            <img src={scene.backgroundRemovedUrl} alt="Transparent" className="w-full h-full object-contain relative z-10" />
-                            <div className="absolute top-2 right-2 px-1.5 py-0.5 bg-green-500 text-black text-[9px] rounded-sm font-bold font-mono tracking-tighter">NO-BG</div>
-                        </div>
-                    ) : scene.imageUrl ? (
-                        <div className="relative w-full h-full">
-                            <img src={scene.imageUrl} alt={scene.visualPrompt} className="w-full h-full object-cover opacity-90 group-hover/image:opacity-100 transition-opacity" />
-                            {/* Remove BG Button overlay */}
-                            <div className="absolute top-2 right-2 flex flex-col gap-1 opacity-0 group-hover/image:opacity-100 transition-all transform translate-y-2 group-hover/image:translate-y-0">
-                                <button
-                                    onClick={handleRemoveBg}
-                                    className="p-1.5 bg-black/60 hover:bg-black/90 text-white rounded backdrop-blur-sm border border-white/10 hover:border-primary/50 hover:text-primary"
-                                    title="Remove Background (Hugging Face)"
-                                >
-                                    {isRemovingBg ? <Loader2 className="w-3 h-3 animate-spin" /> : <Crop className="w-3 h-3" />}
-                                </button>
-                                {onToggleLock && (
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); onToggleLock(scene); }}
-                                        className={cn(
-                                            "p-1.5 rounded backdrop-blur-sm border transition-colors",
-                                            isStructureLocked
-                                                ? "bg-primary text-white border-primary"
-                                                : "bg-black/60 text-white border-white/10 hover:border-primary/50 hover:text-primary"
-                                        )}
-                                        title={isStructureLocked ? "Structure Locked (Unlock)" : "Lock Structure for Next Shot"}
-                                    >
-                                        {isStructureLocked ? <Lock className="w-3 h-3" /> : <Unlock className="w-3 h-3" />}
-                                    </button>
-                                )}
+                {hasImage ? (
+                    <>
+                        <img
+                            src={scene.imageUrl}
+                            alt={scene.visualPrompt}
+                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        />
+                        {/* Golden Grid (Hover) */}
+                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 golden-grid pointer-events-none mix-blend-overlay" />
+
+                        {/* Film Grain Overlay */}
+                        <div className="absolute inset-0 film-grain pointer-events-none opacity-50" />
+
+                        {/* Safe Title Overlay */}
+                        {showSafeTitle && (
+                            <div className="absolute inset-[10%] border border-dashed border-[var(--cinema-teal)]/50 pointer-events-none shadow-[0_0_20px_rgba(50,184,198,0.1)]">
+                                <div className="absolute inset-[10%] border border-dashed border-[var(--cinema-teal)]/30" /> {/* Action Safe */}
+                                <span className="absolute top-1 left-1 text-[8px] text-[var(--cinema-teal)] font-mono">SAFE TITLE</span>
                             </div>
-                        </div>
-                    ) : (
-                        <div className="text-white/20 flex flex-col items-center gap-2">
-                            {scene.status === 'generating' ? (
-                                <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                            ) : (
-                                <ImageIcon className="w-8 h-8 stroke-1" />
-                            )}
-                            <span className="text-[10px] uppercase tracking-widest font-mono">
-                                {scene.status === 'generating' ? 'Rendering...' : 'No Data'}
-                            </span>
-                        </div>
-                    )}
+                        )}
+                    </>
+                ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center gap-3 relative">
+                        {/* Empty State Grid */}
+                        <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(255,255,255,0.03)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.03)_50%,rgba(255,255,255,0.03)_75%,transparent_75%,transparent)] bg-[length:24px_24px]" />
+
+                        {isGenerating ? (
+                            <>
+                                <Loader2 className="w-8 h-8 text-[var(--cinema-teal)] animate-spin" />
+                                <span className="text-[10px] uppercase tracking-widest text-[var(--cinema-teal)] animate-pulse">Rendering Shot...</span>
+                            </>
+                        ) : (
+                            <>
+                                <ImageIcon className="w-8 h-8 text-[#333]" />
+                                <span className="text-[10px] uppercase tracking-widest text-[#555]">Awaiting Input</span>
+                            </>
+                        )}
+                    </div>
+                )}
+            </div>
+
+            {/* --- SMART FOOTER (PROFILE) --- */}
+            <div className="p-4 bg-[#151515] border-t border-white/5 space-y-3">
+                {/* Header Row */}
+                <div className="flex items-start justify-between">
+                    <h3 className="text-sm font-bold text-white leading-tight line-clamp-1">
+                        {scene.scriptText || "Untitled Scene"}
+                    </h3>
+                    <span className="text-[9px] font-mono text-[#555] whitespace-nowrap">ID: {scene.id}</span>
+                </div>
+
+                {/* Metadata Grid */}
+                <div className="grid grid-cols-2 gap-y-1 gap-x-4 text-[10px] text-[#888]">
+                    <div className="flex items-center justify-between border-b border-white/5 pb-1">
+                        <span>Shot</span>
+                        <span className="text-[var(--cinema-teal)] font-medium">
+                            {scene.parameters?.camera?.shotType?.replace('_', ' ').toUpperCase() || "N/A"}
+                        </span>
+                    </div>
+                    <div className="flex items-center justify-between border-b border-white/5 pb-1">
+                        <span>Angle</span>
+                        <span className="text-[#ccc]">Eye Level</span>
+                    </div>
+                    <div className="flex items-center justify-between border-b border-white/5 pb-1">
+                        <span>Lighting</span>
+                        <span className="text-[var(--cinema-gold)]">
+                            {scene.parameters?.lighting?.type?.toUpperCase() || "NATURAL"}
+                        </span>
+                    </div>
+                    <div className="flex items-center justify-between border-b border-white/5 pb-1">
+                        <span>Res</span>
+                        <span className="text-[#ccc]">4K (16:9)</span>
+                    </div>
+                </div>
+
+                {/* Date / Micro-info */}
+                <div className="flex items-center gap-2 pt-1 opacity-50">
+                    <div className="w-1.5 h-1.5 rounded-full bg-[var(--cinema-teal)]" />
+                    <span className="text-[9px] text-[#666]">RAW SOURCE • <span className="font-mono">FIBO GEN-2</span></span>
                 </div>
             </div>
-
-            {/* Script Snippet overlay/footer */}
-            <div className="px-4 pb-4">
-                <p className="text-[10px] text-gray-500 bg-white/5 p-2 rounded border border-white/5 font-mono line-clamp-2">
-                    {scene.scriptText}
-                </p>
-            </div>
-        </div>
+        </motion.div>
     );
 }
