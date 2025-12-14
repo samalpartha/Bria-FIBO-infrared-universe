@@ -4,7 +4,7 @@
 
 [**🚀 Live Demo**](https://bria-fibo-infrared-universe.vercel.app/)
 
-![Infrared Universe Banner](https://images.unsplash.com/photo-1614728853970-309140b74925?q=80&w=2500&auto=format&fit=crop)
+![Infrared Universe Banner](public/banner.png)
 
 ## 🏆 Bria FIBO Hackathon Submission
 
@@ -21,7 +21,7 @@
 
 1. **Clone & Install**
    ```bash
-   git clone <repo>
+   git clone https://github.com/samalpartha/Bria-FIBO-infrared-universe.git
    cd infrared-universe
    npm install
    ```
@@ -43,7 +43,7 @@ Check out [WALKTHROUGH.md](WALKTHROUGH.md) for a deep dive into the Agentic Work
 
 ## Tech Stack
 - **Engine**: Bria FIBO V2 + Bria V1 (Hybrid)
-- **Frontend**: Next.js 14, TailwindCSS, Framer Motion
+- **Frontend**: Next.js 16 (Turbopack), TailwindCSS, Framer Motion
 - **Language**: TypeScript
 - **Best Practices**: Strict Linting, Component Architecture, Type Safety
 
