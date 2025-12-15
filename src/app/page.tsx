@@ -188,8 +188,8 @@ export default function Home() {
 
   // Filtered Scenes for Search
   const filteredScenes = scenes.filter(scene =>
-    scene.scriptText.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    scene.visualPrompt.toLowerCase().includes(searchQuery.toLowerCase())
+    (scene.scriptText || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (scene.visualPrompt || "").toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -271,7 +271,7 @@ export default function Home() {
                     autoFocus
                     type="text"
                     placeholder="Search scenes..."
-                    className="w-40 bg-[#111] border border-white/10 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-[var(--cinema-teal)] animate-in slide-in-from-right-2"
+                    className="w-40 bg-[#222] border border-white/20 rounded px-2 py-1 text-xs text-white placeholder:text-gray-400 focus:outline-none focus:border-[var(--cinema-teal)] animate-in slide-in-from-right-2"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onBlur={() => !searchQuery && setShowSearch(false)}
