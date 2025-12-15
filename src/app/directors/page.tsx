@@ -59,7 +59,7 @@ export default function CastingPage() {
                 <div className="flex items-center justify-between mb-8">
                     <div>
                         <h1 className="text-3xl font-bold text-white tracking-tight">Casting Director</h1>
-                        <p className="text-[#777] mt-2">Manage your diverse cast of Tailored Models. "Defined Character" consistency powered by Bria V2.</p>
+                        <p className="text-[#777] mt-2">Manage your diverse cast of Tailored Models. &quot;Defined Character&quot; consistency powered by Bria V2.</p>
                     </div>
                     <button
                         onClick={handleCreateActor}
