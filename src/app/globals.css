@@ -192,3 +192,19 @@
 ::-webkit-scrollbar-thumb:hover {
   background: var(--cinema-gold);
 }
+/* --- SEARCH INPUT OVERRIDES --- */
+#search-input {
+  background-color: #222 !important;
+  color: white !important;
+  -webkit-text-fill-color: white !important;
+}
+
+/* Force Autofill to match dark theme */
+#search-input:-webkit-autofill,
+#search-input:-webkit-autofill:hover, 
+#search-input:-webkit-autofill:focus, 
+#search-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px #222 inset !important;
+  -webkit-text-fill-color: white !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
