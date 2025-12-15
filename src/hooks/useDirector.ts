@@ -139,7 +139,7 @@ export function useDirector() {
 
         } catch (error) {
             console.error("Generation Failed:", error);
-            setScenes(prev => prev.map(s => s.id === id ? { ...s, status: 'failed' } : s));
+            setScenes(prev => prev.map(s => s.id === id ? { ...s, status: 'failed', error: error instanceof Error ? error.message : "Unknown Error" } : s));
         } finally {
             setIsGenerating(false);
         }

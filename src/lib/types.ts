@@ -100,6 +100,7 @@ export interface Scene {
     seed?: number;
     lockComposition?: boolean;
     structure_seed?: number; // seed locked for composition
+    error?: string;
 }
 
 // --- Tailored Generation Types ---

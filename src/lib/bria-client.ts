@@ -235,8 +235,9 @@ export class BriaClient {
 
         } catch (error) {
             console.error("Bria Generation failed:", error);
-            // Fallback to mock so the UI doesn't break during judging if key/quota fails
-            return this.mockGeneration(prompt, parameters);
+            // DEBUGGING: Throw error to UI instead of mocking
+            throw error;
+            // return this.mockGeneration(prompt, parameters);
         }
     }
 

@@ -46,9 +46,13 @@ export function SceneCard({ scene, isSelected, onClick, onViewJson, onDelete, on
                         "px-2 py-1 rounded-md text-[9px] font-bold uppercase tracking-widest backdrop-blur-md border shadow-sm flex items-center gap-1.5",
                         scene.status === 'completed' ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" :
                             scene.status === 'generating' ? "bg-[var(--cinema-teal)]/10 text-[var(--cinema-teal)] border-[var(--cinema-teal)]/20 shadow-[0_0_10px_rgba(50,184,198,0.2)]" :
-                                "bg-white/5 text-white/50 border-white/10"
-                    )}>
+                                scene.status === 'failed' ? "bg-red-500/10 text-red-400 border-red-500/20" :
+                                    "bg-white/5 text-white/50 border-white/10"
+                    )}
+                        title={scene.error} // Show error on hover
+                    >
                         {scene.status === 'generating' && <Loader2 className="w-2.5 h-2.5 animate-spin" />}
+                        {scene.status === 'failed' && <span className="mr-1">⚠️</span>}
                         {scene.status}
                     </div>
                 </div>
