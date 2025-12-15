@@ -1,6 +1,7 @@
-import { Scene } from "@/lib/types";
+import { Scene, FiboParameters } from '@/lib/types';
 import { cn } from "@/lib/utils";
-import { Crop, Image as ImageIcon, Loader2, Lock, Wand2, Monitor, Grid, Trash2 } from "lucide-react";
+import { Camera, Trash2, GripVertical, Loader2, Lock, Unlock, Wand2, Monitor } from 'lucide-react';
+import { CSS } from '@dnd-kit/utilities';
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { useState } from "react";
@@ -11,15 +12,16 @@ interface SceneCardProps {
     isStructureLocked?: boolean;
     onClick?: () => void;
     onRemoveBg?: (scene: Scene) => void;
-    onToggleLock?: (scene: Scene) => void;
+    onToggleLock?: (id: string) => void;
     onViewJson?: (scene: Scene) => void;
-    onDelete?: (scene: Scene) => void;
-    onGenerate?: (scene: Scene) => void;
+    onDelete?: (id: string) => void;
+    onGenerate?: (id: string) => void;
     onUpdate?: (scene: Scene, updates: Partial<Scene>) => void;
 }
 
-export function SceneCard({ scene, isSelected, onClick, onViewJson, onDelete, onGenerate, onUpdate }: SceneCardProps) {
+export function SceneCard({ scene, isSelected, onClick, onViewJson, onDelete, onGenerate, onUpdate, onToggleLock }: SceneCardProps) {
     const [showSafeTitle, setShowSafeTitle] = useState(false);
+    const [isJsonVisible, setIsJsonVisible] = useState(false);
 
     const isGenerating = scene.status === 'generating';
     const hasImage = !!scene.imageUrl;
@@ -80,7 +82,7 @@ export function SceneCard({ scene, isSelected, onClick, onViewJson, onDelete, on
                     )}
                     {onDelete && (
                         <button
-                            onClick={(e) => { e.stopPropagation(); onDelete(scene); }}
+                            onClick={(e) => { e.stopPropagation(); onDelete(scene.id); }}
                             className="p-1.5 bg-black/40 backdrop-blur-md text-white/70 hover:text-red-400 rounded-md border border-white/10 hover:border-red-500/50"
                             title="Delete Scene"
                         >
@@ -93,7 +95,7 @@ export function SceneCard({ scene, isSelected, onClick, onViewJson, onDelete, on
                 {!hasImage && !isGenerating && onGenerate && (
                     <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
                         <button
-                            onClick={(e) => { e.stopPropagation(); onGenerate(scene); }}
+                            onClick={(e) => { e.stopPropagation(); onGenerate(scene.id); }}
                             className="pointer-events-auto px-4 py-2 bg-[var(--cinema-gold)] text-black rounded-lg font-bold shadow-[0_0_20px_rgba(255,215,0,0.2)] hover:scale-105 transition-transform flex items-center gap-2"
                         >
                             <Wand2 className="w-4 h-4" />
@@ -192,24 +194,67 @@ export function SceneCard({ scene, isSelected, onClick, onViewJson, onDelete, on
 
                 {/* Action Footer */}
                 <div className="flex items-center justify-between pt-2 border-t border-white/5 mt-auto">
-                    <div className="flex items-center gap-2 opacity-50">
-                        <div className="w-1.5 h-1.5 rounded-full bg-[var(--cinema-teal)]" />
-                        <span className="text-[9px] text-[#666]">FIBO GEN-2</span>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onGenerate && onGenerate(scene.id); }}
+                            disabled={scene.status === 'generating'}
+                            className="bg-white text-black px-3 py-1.5 rounded text-[10px] font-bold hover:bg-gray-200 transition-colors disabled:opacity-50"
+                        >
+                            {scene.status === 'generating' ? "GENERATING..." :
+                                scene.status === 'completed' ? "RE-GENERATE" : "GENERATE SHOT"}
+                        </button>
+
+                        {/* JSON View Toggle */}
+                        <button
+                            onClick={(e) => { e.stopPropagation(); setIsJsonVisible(!isJsonVisible); }}
+                            className={`p-1.5 rounded border transition-colors ${isJsonVisible ? 'bg-white/20 border-white/40 text-white' : 'border-white/10 text-white/40 hover:text-white'}`}
+                            title="View FIBO JSON Payload"
+                        >
+                            <span className="font-mono text-[10px]">{`{ }`}</span>
+                        </button>
                     </div>
 
-                    <div className="flex items-center gap-1">
-                        {onGenerate && (
-                            <button
-                                onClick={(e) => { e.stopPropagation(); onGenerate(scene); }}
-                                className="p-1.5 hover:bg-white/10 rounded text-[#777] hover:text-[var(--cinema-gold)] transition-colors"
-                                title="Generate Image"
-                            >
-                                <Wand2 className="w-3.5 h-3.5" />
-                            </button>
-                        )}
+                    <div className="flex gap-2">
+                        {/* Hybrid Lock Toggle */}
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onToggleLock && onToggleLock(scene.id); }}
+                            className={`flex items-center gap-1.5 px-2 py-1.5 rounded transition-colors text-[10px] border ${scene.lockComposition
+                                ? "bg-[var(--cinema-teal)]/20 text-[var(--cinema-teal)] border-[var(--cinema-teal)]/50"
+                                : "bg-transparent text-white/30 border-transparent hover:text-white/60"
+                                }`}
+                            title="Hybrid Structure Lock: Freezes V1 composition for V2 refinement"
+                        >
+                            {scene.lockComposition ? <Lock className="w-3 h-3" /> : <Unlock className="w-3 h-3" />}
+                            <span className="font-bold">STRUC. LOCK</span>
+                        </button>
+
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onDelete && onDelete(scene.id); }}
+                            className="p-1.5 rounded bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors"
+                        >
+                            <Trash2 className="w-3 h-3" />
+                        </button>
                     </div>
                 </div>
 
+                {/* JSON Viewer Overlay/Panel */}
+                {isJsonVisible && (
+                    <div className="mt-2 text-[9px] font-mono text-gray-400 bg-black/50 p-2 rounded border border-white/10 overflow-x-auto">
+                        <div className="flex justify-between items-center mb-1 pb-1 border-b border-white/5">
+                            <span className="text-[var(--cinema-teal)] font-bold">FIBO PRO PAYLOAD</span>
+                            <span className="text-[8px] uppercase tracking-wider text-gray-500">Native JSON Control</span>
+                        </div>
+                        <pre className="whitespace-pre-wrap">
+                            {JSON.stringify({
+                                camera: scene.parameters?.camera,
+                                lighting: scene.parameters?.lighting,
+                                style: scene.parameters?.style,
+                                seed: scene.seed || "random",
+                                structure_reference: scene.lockComposition ? "ACTIVE (V1)" : "None"
+                            }, null, 2)}
+                        </pre>
+                    </div>
+                )}
             </div>
         </motion.div >
     );

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Scene } from "@/lib/types";
-import { Play, Search, ZoomIn, PlusCircle, SkipBack, SkipForward, FileText, Camera } from "lucide-react";
+import { Play, Search, ZoomIn, PlusCircle, SkipBack, SkipForward, FileText, Camera, Sparkles, Clapperboard, Download, Film, Wand2 } from "lucide-react";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -20,18 +20,18 @@ import { WelcomeModal } from "@/components/onboarding/WelcomeModal";
 import { useToast } from "@/components/ui/ToastContext";
 
 // --- SORTABLE WRAPPER ---
-// --- SORTABLE WRAPPER ---
 interface SortableSceneProps {
   scene: Scene;
   activeSceneId: string | null;
   selectScene: (id: string) => void;
   onViewJson?: (scene: Scene) => void;
-  onDelete?: (scene: Scene) => void;
-  onGenerate?: (scene: Scene) => void;
+  onDelete?: (id: string) => void;
+  onGenerate?: (id: string) => void;
   onUpdate?: (scene: Scene, updates: Partial<Scene>) => void;
+  onToggleLock?: (id: string) => void;
 }
 
-function SortableScene({ scene, activeSceneId, selectScene, onViewJson, onDelete, onGenerate, onUpdate }: SortableSceneProps) {
+function SortableScene({ scene, activeSceneId, selectScene, onViewJson, onDelete, onGenerate, onUpdate, onToggleLock }: SortableSceneProps) {
   const {
     attributes,
     listeners,
@@ -58,6 +58,7 @@ function SortableScene({ scene, activeSceneId, selectScene, onViewJson, onDelete
         onDelete={onDelete}
         onGenerate={onGenerate}
         onUpdate={onUpdate}
+        onToggleLock={onToggleLock}
       />
     </div>
   );
@@ -312,9 +313,10 @@ export default function Home() {
                           activeSceneId={activeSceneId}
                           selectScene={(id) => { selectScene(id); if (window.innerWidth < 768) setActiveMobileTab('studio'); }}
                           onViewJson={(scene) => setViewingJsonScene(scene)}
-                          onDelete={(scene) => deleteScene(scene.id)}
-                          onGenerate={(scene) => { generateShot(scene.id); addToast("Shot queued for rendering...", "info"); }}
+                          onDelete={(id) => deleteScene(id)}
+                          onGenerate={(id) => { generateShot(id); addToast("Shot queued for rendering...", "info"); }}
                           onUpdate={(scene, updates) => updateScene(scene.id, updates)}
+                          onToggleLock={(id) => toggleCompositionLock(id)}
                         />
                       ))}
                       {/* ADD SCENE BUTTON */}
@@ -327,49 +329,59 @@ export default function Home() {
                       </button>
                     </div>
                   ) : (
-                    <div className="h-full flex flex-col items-center justify-center text-center space-y-6">
-                      <div className="w-20 h-20 rounded-full bg-[var(--cinema-gold)]/5 border border-[var(--cinema-gold)]/20 flex items-center justify-center glow-gold">
-                        <Play className="w-8 h-8 text-[var(--cinema-gold)] ml-1" />
+                    <div className="flex justify-between items-center mb-6">
+                      <h2 className="text-xl font-bold tracking-wider text-[var(--cinema-gold)] uppercase flex items-center gap-2">
+                        <Clapperboard className="w-5 h-5" />
+                        Shot List & Storyboard
+                      </h2>
+                      <div className="flex gap-3">
+                        <button
+                          onClick={handleExport}
+                          className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors"
+                        >
+                          <Download className="w-4 h-4" />
+                          Export (JSON)
+                        </button>
+                        <button
+                          onClick={analyzeScript}
+                          disabled={isGenerating}
+                          className="flex items-center gap-2 px-6 py-2 bg-[var(--cinema-teal)] text-black rounded-lg text-xs font-bold uppercase tracking-widest hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(50,184,198,0.2)] transition-all"
+                        >
+                          <Sparkles className="w-4 h-4" />
+                          {isGenerating ? "Analyzing..." : "Director Agent"}
+                        </button>
+                        <button
+                          onClick={generateAll}
+                          disabled={isGenerating || scenes.length === 0}
+                          className="flex items-center gap-2 px-6 py-2 bg-[var(--cinema-gold)] text-black rounded-lg text-xs font-bold uppercase tracking-widest hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(255,215,0,0.2)] transition-all"
+                        >
+                          <Film className="w-4 h-4" />
+                          {isGenerating ? "Rendering..." : "Render All"}
+                        </button>
                       </div>
-                      <div className="space-y-2">
-                        <h2 className="text-2xl font-bold text-white">Ready to Direct?</h2>
-                        <p className="text-[#777] max-w-sm mx-auto">Start by pasting your script in the left panel or click to create your first scene manually.</p>
-                      </div>
-                      <button
-                        onClick={() => {
-                          if (window.innerWidth < 768) {
-                            setActiveMobileTab('script');
-                          } else {
-                            createEmptyScene();
-                            addToast("New scene created", "success");
-                          }
-                        }}
-                        className="px-6 py-3 bg-[var(--cinema-gold)] text-black font-bold uppercase tracking-widest rounded hover:scale-105 transition-transform glow-gold"
-                      >
-                        Start Creating
-                      </button>
                     </div>
                   )}
+                  {isGenerating && (
+                    <div className="mb-8 p-4 rounded-lg bg-[var(--cinema-teal)]/10 border border-[var(--cinema-teal)]/20 animate-pulse">
+                      <div className="flex items-center gap-3 text-[var(--cinema-teal)]">
+                        <Wand2 className="w-5 h-5 animate-spin" />
+                        <span className="font-mono text-sm uppercase tracking-widest">
+                          Director Agent Active: Analyzing script and generating shots...
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-3 mt-8">
+                    <button className="text-[#777] hover:text-white transition-colors"><SkipBack className="w-4 h-4" /></button>
+                    <button className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-[var(--cinema-gold)] hover:text-black transition-colors"><Play className="w-3 h-3 ml-0.5" /></button>
+                    <button className="text-[#777] hover:text-white transition-colors"><SkipForward className="w-4 h-4" /></button>
+                  </div>
+                  <div className="w-24 bg-white/5 h-1 rounded-full overflow-hidden mt-2">
+                    <div className="w-[30%] h-full bg-[var(--cinema-gold)]" />
+                  </div>
                 </div>
               </SortableContext>
             </DndContext>
-          </div>
-
-          {/* FOOTER: PLAYBACK */}
-          <div className="h-12 border-t border-white/5 bg-[#0a0a0a] flex items-center justify-between px-6 z-30">
-            <div className="flex items-center gap-4 text-[10px] font-mono text-[#555]">
-              <span className="text-[var(--cinema-teal)]">READY</span>
-              <div className="w-[1px] h-3 bg-white/10" />
-              <span>00:00:00:00</span>
-            </div>
-            <div className="flex items-center gap-6">
-              <button className="text-[#777] hover:text-white transition-colors"><SkipBack className="w-4 h-4" /></button>
-              <button className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-[var(--cinema-gold)] hover:text-black transition-colors"><Play className="w-3 h-3 ml-0.5" /></button>
-              <button className="text-[#777] hover:text-white transition-colors"><SkipForward className="w-4 h-4" /></button>
-            </div>
-            <div className="w-24 bg-white/5 h-1 rounded-full overflow-hidden">
-              <div className="w-[30%] h-full bg-[var(--cinema-gold)]" />
-            </div>
           </div>
         </div>
 
