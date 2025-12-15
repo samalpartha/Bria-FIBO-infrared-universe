@@ -220,7 +220,7 @@ export function useDirector() {
                 console.log(`Analyzing Scene ${i + 1}: ${scene.scriptText}`);
 
                 // DECOUPLED WORKFLOW: Generate Structured Prompt First
-                const result = await client.generateStructuredPrompt(scene.visualPrompt);
+                const result = await client.generateStructuredPrompt(scene.visualPrompt) as any;
 
                 // Extract description for UI/Review
                 const newPrompt = result.result?.structured_prompt

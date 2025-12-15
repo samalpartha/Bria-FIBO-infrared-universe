@@ -23,7 +23,7 @@ export interface FiboParameters {
     composition?: CompositionSettings;
     subject?: SubjectSettings;
     style?: StyleSettings;
-    style?: StyleSettings;
+
     structured_prompt?: Record<string, unknown>; // Decoupled workflow JSON
     lockComposition?: boolean; // Hackathon Polish: UI flag
     structure_seed?: number; // Hackathon Polish: V2 seed lock
