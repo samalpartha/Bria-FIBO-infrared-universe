@@ -23,6 +23,20 @@
     --text-secondary: #b0b0b0;
 
     --radius: 12px;
+
+    --radius: 12px;
+
+    /* --- DIRECTOR THEME VARIABLES (High Contrast Fix) --- */
+    --director-bg: #000000;
+    /* Pure Black for depth */
+    --director-surface-1: #1a1a1a;
+    /* Lighter charcoal for panels */
+    --director-surface-2: #242424;
+    /* Even lighter for active areas */
+    --director-text: #ffffff;
+    /* Pure White for max contrast */
+    --director-text-muted: #a1a1a1;
+    /* Lighter grey for secondary text */
   }
 
   body {
@@ -38,11 +52,13 @@
 
   /* --- 1. GLASSMORPHISM PANEL --- */
   .control-panel {
-    background: rgba(42, 42, 42, 0.7);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(50, 184, 198, 0.2);
+    background: rgba(36, 36, 36, 0.95);
+    /* Higher opacity, less blur reliance */
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    /* White border for visibility */
     border-radius: 16px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
   }
 
   /* --- 2. CINEMA CANVAS --- */

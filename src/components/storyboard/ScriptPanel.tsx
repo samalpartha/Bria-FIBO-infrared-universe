@@ -65,7 +65,7 @@ export function ScriptPanel({ script, setScript, onAnalyze, onGenerateAll, histo
                         <textarea
                             value={script}
                             onChange={(e) => setScript(e.target.value)}
-                            className="w-full h-full bg-[#1a1a1a] p-5 text-xs font-mono leading-relaxed text-[#f5f5f5] outline-none resize-none placeholder:text-[#333] selection:bg-[var(--cinema-teal)]/20 custom-scrollbar"
+                            className="w-full h-full bg-[#1a1a1a] p-5 text-xs font-mono leading-relaxed text-[#f5f5f5] outline-none resize-none placeholder:text-[#555] selection:bg-[var(--cinema-teal)]/20 custom-scrollbar"
                             placeholder="EXT. VOID - NIGHT..."
                             spellCheck={false}
                         />

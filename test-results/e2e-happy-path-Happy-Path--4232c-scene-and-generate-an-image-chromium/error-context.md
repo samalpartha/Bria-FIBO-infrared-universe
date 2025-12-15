@@ -1,0 +1,61 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - img [ref=e6]
+        - generic [ref=e15]: "BRIA-FIBO: INFRARED UNIVERSE"
+      - generic [ref=e16]:
+        - link "View on GitHub" [ref=e17] [cursor=pointer]:
+          - /url: https://github.com/samalpartha/Bria-FIBO-infrared-universe
+          - img [ref=e18]
+        - button "User Profile" [ref=e21] [cursor=pointer]:
+          - img [ref=e22]
+    - generic [ref=e26]:
+      - button "← Back" [ref=e28]
+      - generic [ref=e29]:
+        - generic [ref=e31]: Studio Controls
+        - generic [ref=e32]:
+          - generic [ref=e33]:
+            - generic [ref=e34]:
+              - img [ref=e35]
+              - generic [ref=e38]: Camera
+            - generic [ref=e39]:
+              - button "Set Shot Type to Wide" [ref=e40]: Wide
+              - button "Set Shot Type to Medium" [ref=e41]: Medium
+              - button "Set Shot Type to Close-up" [ref=e42]: Close-up
+              - button "Set Shot Type to Macro" [ref=e43]: Macro
+          - generic [ref=e44]:
+            - generic [ref=e45]:
+              - img [ref=e46]
+              - generic [ref=e52]: Lighting
+            - generic [ref=e53]:
+              - generic [ref=e56] [cursor=pointer]: Day
+              - generic [ref=e59] [cursor=pointer]: Blue
+              - generic [ref=e62] [cursor=pointer]: Warm
+              - generic [ref=e65] [cursor=pointer]: Neon
+          - generic [ref=e66]:
+            - generic [ref=e67]:
+              - img [ref=e68]
+              - generic [ref=e74]: Style
+            - generic [ref=e75]:
+              - generic [ref=e77] [cursor=pointer]: Film Grain
+              - generic [ref=e80] [cursor=pointer]: Bloom
+        - generic [ref=e83]:
+          - button "Generate Image" [active] [ref=e84]: Generate Shot
+          - generic: Generate a high-fidelity image for this scene
+    - generic [ref=e85]:
+      - button "Script" [ref=e86]:
+        - img [ref=e87]
+        - generic [ref=e90]: Script
+      - button [ref=e91]:
+        - img [ref=e93]
+      - button "Studio" [ref=e95]:
+        - img [ref=e96]
+        - generic [ref=e99]: Studio
+  - button "Open Next.js Dev Tools" [ref=e105] [cursor=pointer]:
+    - img [ref=e106]
+  - alert [ref=e109]
+```

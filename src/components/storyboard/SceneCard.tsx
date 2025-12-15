@@ -1,6 +1,6 @@
 import { Scene } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { Crop, Image as ImageIcon, Loader2, Lock, Wand2, Monitor, Grid } from "lucide-react";
+import { Crop, Image as ImageIcon, Loader2, Lock, Wand2, Monitor, Grid, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { useState } from "react";
@@ -12,13 +12,18 @@ interface SceneCardProps {
     onClick?: () => void;
     onRemoveBg?: (scene: Scene) => void;
     onToggleLock?: (scene: Scene) => void;
+    onViewJson?: (scene: Scene) => void;
+    onDelete?: (scene: Scene) => void;
+    onGenerate?: (scene: Scene) => void;
+    onUpdate?: (scene: Scene, updates: Partial<Scene>) => void;
 }
 
-export function SceneCard({ scene, isSelected, isStructureLocked, onClick, onRemoveBg, onToggleLock }: SceneCardProps) {
+export function SceneCard({ scene, isSelected, onClick, onViewJson, onDelete, onGenerate, onUpdate }: SceneCardProps) {
     const [showSafeTitle, setShowSafeTitle] = useState(false);
 
     const isGenerating = scene.status === 'generating';
     const hasImage = !!scene.imageUrl;
+    const hasJson = !!scene.structuredPrompt;
 
     return (
         <motion.div
@@ -29,12 +34,12 @@ export function SceneCard({ scene, isSelected, isStructureLocked, onClick, onRem
             transition={{ duration: 0.2 }}
             onClick={onClick}
             className={cn(
-                "cinema-card relative group overflow-hidden cursor-pointer transition-all duration-300 flex flex-col hover:shadow-[0_0_30px_rgba(0,0,0,0.5)]",
-                isSelected ? "border-[var(--cinema-teal)] ring-1 ring-[var(--cinema-teal)] shadow-2xl shadow-[var(--cinema-teal)]/10" : "hover:border-white/20"
+                "cinema-card relative group overflow-hidden cursor-pointer transition-all duration-300 flex flex-col hover:shadow-[0_0_30px_rgba(0,0,0,0.5)] bg-[#111]",
+                isSelected ? "border-[var(--cinema-teal)] ring-1 ring-[var(--cinema-teal)] shadow-2xl shadow-[var(--cinema-teal)]/10" : "hover:border-white/20 border-white/5 border"
             )}
         >
             {/* --- IMAGE AREA --- */}
-            <div className="relative aspect-video w-full bg-black overflow-hidden">
+            <div className="relative aspect-video w-full min-h-[200px] bg-black overflow-hidden group/image shrink-0">
                 {/* Status Pill (Floating) */}
                 <div className="absolute top-3 right-3 z-30 flex gap-2">
                     <div className={cn(
@@ -49,7 +54,7 @@ export function SceneCard({ scene, isSelected, isStructureLocked, onClick, onRem
                 </div>
 
                 {/* Tools Overlay (Hover) */}
-                <div className="absolute top-3 left-3 z-30 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute top-3 left-3 z-30 flex gap-1 opacity-0 group-hover/image:opacity-100 transition-opacity">
                     <button
                         onClick={(e) => { e.stopPropagation(); setShowSafeTitle(!showSafeTitle); }}
                         className={cn(
@@ -60,10 +65,38 @@ export function SceneCard({ scene, isSelected, isStructureLocked, onClick, onRem
                     >
                         <Monitor className="w-3 h-3" />
                     </button>
-                    <button className="p-1.5 bg-black/40 backdrop-blur-md text-white/70 hover:text-white rounded-md border border-white/10" title="Grid">
-                        <Grid className="w-3 h-3" />
-                    </button>
+                    {hasJson && onViewJson && (
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onViewJson(scene); }}
+                            className="p-1.5 bg-black/40 backdrop-blur-md text-white/70 hover:text-[var(--cinema-gold)] rounded-md border border-white/10 hover:border-[var(--cinema-gold)]"
+                            title="View FIBO JSON"
+                        >
+                            <span className="text-[9px] font-bold">{"{}"}</span>
+                        </button>
+                    )}
+                    {onDelete && (
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onDelete(scene); }}
+                            className="p-1.5 bg-black/40 backdrop-blur-md text-white/70 hover:text-red-400 rounded-md border border-white/10 hover:border-red-500/50"
+                            title="Delete Scene"
+                        >
+                            <Trash2 className="w-3 h-3" />
+                        </button>
+                    )}
                 </div>
+
+                {/* Center Generate Button (If No Image) */}
+                {!hasImage && !isGenerating && onGenerate && (
+                    <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onGenerate(scene); }}
+                            className="pointer-events-auto px-4 py-2 bg-[var(--cinema-gold)] text-black rounded-lg font-bold shadow-[0_0_20px_rgba(255,215,0,0.2)] hover:scale-105 transition-transform flex items-center gap-2"
+                        >
+                            <Wand2 className="w-4 h-4" />
+                            <span>GENERATE</span>
+                        </button>
+                    </div>
+                )}
 
                 {hasImage ? (
                     <>
@@ -91,29 +124,39 @@ export function SceneCard({ scene, isSelected, isStructureLocked, onClick, onRem
                         {/* Empty State Grid */}
                         <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(255,255,255,0.03)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.03)_50%,rgba(255,255,255,0.03)_75%,transparent_75%,transparent)] bg-[length:24px_24px]" />
 
-                        {isGenerating ? (
+                        {isGenerating && (
                             <>
                                 <Loader2 className="w-8 h-8 text-[var(--cinema-teal)] animate-spin" />
                                 <span className="text-[10px] uppercase tracking-widest text-[var(--cinema-teal)] animate-pulse">Rendering Shot...</span>
-                            </>
-                        ) : (
-                            <>
-                                <ImageIcon className="w-8 h-8 text-[#333]" />
-                                <span className="text-[10px] uppercase tracking-widest text-[#555]">Awaiting Input</span>
                             </>
                         )}
                     </div>
                 )}
             </div>
 
-            {/* --- SMART FOOTER (PROFILE) --- */}
-            <div className="p-4 bg-[#151515] border-t border-white/5 space-y-3">
-                {/* Header Row */}
-                <div className="flex items-start justify-between">
-                    <h3 className="text-sm font-bold text-white leading-tight line-clamp-1">
-                        {scene.scriptText || "Untitled Scene"}
-                    </h3>
-                    <span className="text-[9px] font-mono text-[#555] whitespace-nowrap">ID: {scene.id}</span>
+            {/* --- SMART FOOTER (Editable) --- */}
+            <div className="p-4 bg-[#151515] border-t border-white/5 space-y-3 flex-1 flex flex-col relative">
+
+                {/* Header Row: Editable Script Text */}
+                <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1">
+                        <input
+                            type="text"
+                            className="w-full !bg-transparent border-none text-sm font-bold text-white placeholder:text-white/40 focus:ring-0 p-0 leading-tight"
+                            value={scene.scriptText || ""}
+                            onChange={(e) => onUpdate && onUpdate(scene, { scriptText: e.target.value })}
+                            placeholder="SCENE HEADING..."
+                            onClick={(e) => e.stopPropagation()}
+                        />
+                        <input
+                            type="text"
+                            className="w-full !bg-transparent border-none text-[10px] text-white placeholder:text-white/40 focus:ring-0 p-0 mt-1"
+                            value={scene.visualPrompt || ""}
+                            onChange={(e) => onUpdate && onUpdate(scene, { visualPrompt: e.target.value })}
+                            placeholder="Visual description..."
+                            onClick={(e) => e.stopPropagation()}
+                        />
+                    </div>
                 </div>
 
                 {/* Metadata Grid */}
@@ -128,24 +171,30 @@ export function SceneCard({ scene, isSelected, isStructureLocked, onClick, onRem
                         <span>Angle</span>
                         <span className="text-[#ccc]">Eye Level</span>
                     </div>
-                    <div className="flex items-center justify-between border-b border-white/5 pb-1">
-                        <span>Lighting</span>
-                        <span className="text-[var(--cinema-gold)]">
-                            {scene.parameters?.lighting?.type?.toUpperCase() || "NATURAL"}
-                        </span>
+                    {/* ... other metadata ... */}
+                </div>
+
+                {/* Action Footer */}
+                <div className="flex items-center justify-between pt-2 border-t border-white/5 mt-auto">
+                    <div className="flex items-center gap-2 opacity-50">
+                        <div className="w-1.5 h-1.5 rounded-full bg-[var(--cinema-teal)]" />
+                        <span className="text-[9px] text-[#666]">FIBO GEN-2</span>
                     </div>
-                    <div className="flex items-center justify-between border-b border-white/5 pb-1">
-                        <span>Res</span>
-                        <span className="text-[#ccc]">4K (16:9)</span>
+
+                    <div className="flex items-center gap-1">
+                        {onGenerate && (
+                            <button
+                                onClick={(e) => { e.stopPropagation(); onGenerate(scene); }}
+                                className="p-1.5 hover:bg-white/10 rounded text-[#777] hover:text-[var(--cinema-gold)] transition-colors"
+                                title="Generate Image"
+                            >
+                                <Wand2 className="w-3.5 h-3.5" />
+                            </button>
+                        )}
                     </div>
                 </div>
 
-                {/* Date / Micro-info */}
-                <div className="flex items-center gap-2 pt-1 opacity-50">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[var(--cinema-teal)]" />
-                    <span className="text-[9px] text-[#666]">RAW SOURCE • <span className="font-mono">FIBO GEN-2</span></span>
-                </div>
             </div>
-        </motion.div>
+        </motion.div >
     );
 }

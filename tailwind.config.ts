@@ -55,6 +55,10 @@ const config: Config = {
                 border: "hsl(var(--border))",
                 input: "hsl(var(--input))",
                 ring: "hsl(var(--ring))",
+                "director-bg": "var(--director-bg)",
+                "director-surface-1": "var(--director-surface-1)",
+                "director-surface-2": "var(--director-surface-2)",
+                "director-text": "var(--director-text)",
                 chart: {
                     "1": "hsl(var(--chart-1))",
                     "2": "hsl(var(--chart-2))",
@@ -63,15 +67,15 @@ const config: Config = {
                     "5": "hsl(var(--chart-5))",
                 },
                 // Premium Director's Cut Palette (True Void System)
-                'director-black': '#09090b', // Zinc-950
-                'director-panel': '#18181b', // Zinc-900
+                // 'director-black': '#09090b', // Zinc-950 - Use var(--director-bg) instead
+                // 'director-panel': '#18181b', // Zinc-900 - Use var(--director-surface-1) instead
                 'director-teal': {
                     DEFAULT: '#22d3ee', // Cyan-400
                     hover: '#67e8f9',   // Cyan-300
                     active: '#06b6d4'   // Cyan-500
                 },
                 'director-gold': '#facc15', // Yellow-400
-                'director-text': '#e4e4e7', // Zinc-200
+                // 'director-text': '#e4e4e7', // Zinc-200 - Use var(--director-text) instead
                 'border-DEFAULT': '#27272a', // Zinc-800
             },
             borderRadius: {

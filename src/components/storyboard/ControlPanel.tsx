@@ -9,34 +9,53 @@ interface StudioControlsProps {
     isHybridMode?: boolean;
     onGenerate?: () => void;
     isGenerating?: boolean;
-    onUpdateParams?: (params: Partial<FiboParameters>) => void;
+    onUpdateParams?: (params: Partial<FiboParameters>) => void; // Deprecated but kept for safety
+    onUpdateComposition?: (params: Partial<FiboParameters>) => void;
+    onUpdateStyle?: (params: Partial<FiboParameters>) => void;
+    onToggleLock?: (id: string) => void;
 }
 
-export function StudioControls({ scene, isHybridMode, onGenerate, isGenerating, onUpdateParams }: StudioControlsProps) {
+export function StudioControls({ scene, onGenerate, isGenerating, onUpdateParams, onUpdateComposition, onUpdateStyle, onToggleLock }: StudioControlsProps) {
+
+    // Helper to route updates based on type if split callbacks provided
+    const handleCameraUpdate = (p: Partial<FiboParameters>) => {
+        if (onUpdateComposition && scene && !scene.lockComposition) onUpdateComposition(p);
+        else if (onUpdateParams) onUpdateParams(p);
+    };
+
+    const handleStyleUpdate = (p: Partial<FiboParameters>) => {
+        if (onUpdateStyle) onUpdateStyle(p);
+        else if (onUpdateParams) onUpdateParams(p);
+    };
+
     return (
         <div className="w-full h-full flex flex-col control-panel overflow-hidden border-none text-[var(--director-text)] bg-[var(--director-surface-2)]">
             {/* Header */}
             <div className="h-10 px-5 flex items-center justify-between border-b border-white/5 bg-black/20">
                 <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#777]">Studio Controls</span>
 
-                {/* Hybrid Mode Badge */}
-                {isHybridMode && (
-                    <Tooltip content="Structure Lock Active (Bria V1 + FIBO V2)" side="bottom">
-                        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-[var(--cinema-gold)]/10 border border-[var(--cinema-gold)]/20 rounded text-[9px] text-[var(--cinema-gold)] animate-pulse cursor-help">
-                            <Zap className="w-3 h-3" /> Hybrid
-                        </div>
-                    </Tooltip>
+                {/* Structure Lock Toggle (Hackathon Polish) */}
+                {scene && onToggleLock && (
+                    <div className={cn(
+                        "flex items-center gap-2 px-2 py-1 rounded cursor-pointer transition-colors select-none",
+                        scene.lockComposition ? "bg-[var(--cinema-gold)]/20 text-[var(--cinema-gold)]" : "bg-white/5 text-[#555] hover:bg-white/10"
+                    )}
+                        onClick={() => onToggleLock(scene.id)}
+                    >
+                        <Zap className="w-3 h-3 filled" fill={scene.lockComposition ? "currentColor" : "none"} />
+                        <span className="text-[9px] font-bold uppercase">{scene.lockComposition ? "Locked" : "Unlock"}</span>
+                    </div>
                 )}
             </div>
 
             {/* Scrollable Controls */}
             <div className="flex-1 p-5 space-y-8 overflow-y-auto custom-scrollbar">
 
-                {/* 1. Camera Section */}
-                <div className="space-y-3">
+                {/* 1. Camera Section (Composition) */}
+                <div className={cn("space-y-3 transition-opacity duration-300", scene?.lockComposition ? "opacity-50 pointer-events-none grayscale" : "")}>
                     <div className="flex items-center gap-2 text-[var(--cinema-teal)] mb-1">
                         <Camera className="w-3 h-3" />
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-[#777]">Camera</label>
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-white">Camera {scene?.lockComposition && "(LOCKED)"}</label>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                         {[
@@ -49,11 +68,12 @@ export function StudioControls({ scene, isHybridMode, onGenerate, isGenerating, 
                             return (
                                 <button
                                     key={t.value}
-                                    onClick={() => onUpdateParams?.({ camera: { shotType: t.value as any } })}
+                                    onClick={() => handleCameraUpdate({ camera: { shotType: t.value as any } })}
+                                    disabled={scene?.lockComposition}
                                     aria-label={`Set Shot Type to ${t.label}`}
                                     className={cn(
                                         "interactive-pill py-3 px-4 rounded-lg text-[13px] font-bold uppercase tracking-wide text-left relative overflow-hidden transition-all",
-                                        isActive ? "bg-[var(--cinema-teal)] text-black shadow-[0_0_10px_rgba(50,184,198,0.4)]" : "bg-white/5 text-[#A0A0A0] hover:bg-white/10 hover:text-white"
+                                        isActive ? "bg-[var(--cinema-teal)] text-black shadow-[0_0_10px_rgba(50,184,198,0.4)]" : "bg-white/5 text-white hover:bg-white/10 hover:text-white"
                                     )}
                                 >
                                     <span className="relative z-10">{t.label}</span>
@@ -63,11 +83,11 @@ export function StudioControls({ scene, isHybridMode, onGenerate, isGenerating, 
                     </div>
                 </div>
 
-                {/* 2. Lighting Section */}
+                {/* 2. Lighting Section (Style) */}
                 <div className="space-y-3">
                     <div className="flex items-center gap-2 text-[var(--cinema-gold)] mb-1">
                         <Sun className="w-3 h-3" />
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-[#777]">Lighting</label>
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-white">Lighting (FIBO V2)</label>
                     </div>
                     <div className="grid grid-cols-4 gap-3">
                         {[
@@ -80,7 +100,7 @@ export function StudioControls({ scene, isHybridMode, onGenerate, isGenerating, 
                             return (
                                 <div key={i}
                                     className="group cursor-pointer flex flex-col items-center gap-2"
-                                    onClick={() => onUpdateParams?.({ lighting: { type: c.value as any } })}
+                                    onClick={() => handleStyleUpdate({ lighting: { type: c.value as any } })}
                                 >
                                     <div
                                         className={cn(
@@ -99,15 +119,15 @@ export function StudioControls({ scene, isHybridMode, onGenerate, isGenerating, 
                     </div>
                 </div>
 
-                {/* 3. Style Section */}
+                {/* 3. Style Section (Style) */}
                 <div className="space-y-3">
                     <div className="flex items-center gap-2 text-purple-400 mb-1">
                         <Palette className="w-3 h-3" />
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-[#777]">Style</label>
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-white">Style (FIBO V2)</label>
                     </div>
                     <div className="space-y-2">
                         <div
-                            onClick={() => onUpdateParams?.({ style: { atmosphere: 'film_grain' } })}
+                            onClick={() => handleStyleUpdate({ style: { atmosphere: 'film_grain' } })}
                             className={cn(
                                 "flex items-center justify-between p-3 rounded-xl border border-white/10 cursor-pointer transition-all hover:bg-white/5",
                                 scene?.parameters?.style?.atmosphere === 'film_grain' && "bg-[var(--cinema-teal)]/10 border-[var(--cinema-teal)]"
@@ -119,7 +139,7 @@ export function StudioControls({ scene, isHybridMode, onGenerate, isGenerating, 
                             )} />
                         </div>
                         <div
-                            onClick={() => onUpdateParams?.({ style: { atmosphere: 'bloom' } })}
+                            onClick={() => handleStyleUpdate({ style: { atmosphere: 'bloom' } })}
                             className={cn(
                                 "flex items-center justify-between p-3 rounded-xl border border-white/10 cursor-pointer transition-all hover:bg-white/5",
                                 scene?.parameters?.style?.atmosphere === 'bloom' && "bg-[var(--cinema-teal)]/10 border-[var(--cinema-teal)]"

@@ -61,7 +61,7 @@ export function useDirector() {
         return () => clearTimeout(timer);
     }, [script]);
 
-    const [activeSceneId, setActiveSceneId] = useState<string | null>('3');
+    const [activeSceneId, setActiveSceneId] = useState<string | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
     const activeScene = scenes.find(s => s.id === activeSceneId);
     const [history, setHistory] = useState<Scene[]>([]);
@@ -111,7 +111,14 @@ export function useDirector() {
             // 2. Call Real API
             console.log("Generatiing Real Shot for:", scene.scriptText);
             const fullPrompt = `${scene.scriptText}. ${scene.visualPrompt}`; // Combine header and visuals
-            const result = await client.generateImage(fullPrompt, scene.parameters);
+
+            // DECOUPLED WORKFLOW: Pass the pre-generated structured prompt if available
+            const generationParams = {
+                ...scene.parameters,
+                structured_prompt: scene.structuredPrompt
+            };
+
+            const result = await client.generateImage(fullPrompt, generationParams);
 
             // 3. Update with Result
             setScenes(prev => {
@@ -201,14 +208,160 @@ export function useDirector() {
         setIsGenerating(false);
     }, [scenes, client]);
 
-    const analyzeScript = useCallback(() => {
-        // Trigger a re-parse or analysis effect
-        // For now, we'll just simulate a "processing" state slightly
+    const analyzeScript = useCallback(async () => {
+        setIsGenerating(true);
+        // Mark all as generating (or analyzing)
         setScenes(prev => prev.map(s => ({ ...s, status: 'generating' })));
-        setTimeout(() => {
-            setScenes(prev => prev.map(s => ({ ...s, status: 'pending' })));
-        }, 1000);
+
+        const totalScenes = scenes.length;
+        for (let i = 0; i < totalScenes; i++) {
+            const scene = scenes[i];
+            try {
+                console.log(`Analyzing Scene ${i + 1}: ${scene.scriptText}`);
+
+                // DECOUPLED WORKFLOW: Generate Structured Prompt First
+                const result = await client.generateStructuredPrompt(scene.visualPrompt);
+
+                // Extract description for UI/Review
+                const newPrompt = result.result?.structured_prompt
+                    ? (typeof result.result.structured_prompt === 'string'
+                        ? JSON.parse(result.result.structured_prompt)
+                        : result.result.structured_prompt)
+                    : {};
+
+                const shortDescription = newPrompt.short_description || scene.visualPrompt;
+
+                setScenes(prev => {
+                    const newScenes = [...prev];
+                    if (newScenes[i]) {
+                        newScenes[i] = {
+                            ...newScenes[i],
+                            status: 'pending', // Ready to generate
+                            visualPrompt: shortDescription, // Update with high-fidelity description
+                            structuredPrompt: result.result?.structured_prompt as Record<string, unknown>, // Store for generation
+                            parameters: {
+                                ...newScenes[i].parameters,
+                                // We could partially update params from the JSON if we wanted to parse deeper
+                            }
+                        };
+                    }
+                    return newScenes;
+                });
+
+            } catch (error) {
+                console.error(`Analysis failed for scene ${i + 1}`, error);
+                setScenes(prev => {
+                    const ns = [...prev];
+                    if (ns[i]) ns[i] = { ...ns[i], status: 'failed' };
+                    return ns;
+                });
+            }
+        }
+        setIsGenerating(false);
+    }, [scenes, client]);
+
+    const updateSceneComposition = useCallback((id: string, newParams: Partial<FiboParameters>) => {
+        setScenes(prev => prev.map(scene => {
+            if (scene.id !== id || scene.lockComposition) return scene; // Respect structure lock
+            return {
+                ...scene,
+                parameters: {
+                    ...scene.parameters,
+                    ...newParams,
+                    camera: { ...scene.parameters.camera, ...newParams.camera },
+                    // Only update composition related fields
+                }
+            };
+        }));
     }, []);
+
+    const updateSceneStyle = useCallback((id: string, newParams: Partial<FiboParameters>) => {
+        setScenes(prev => prev.map(scene => {
+            if (scene.id !== id) return scene;
+            return {
+                ...scene,
+                parameters: {
+                    ...scene.parameters,
+                    ...newParams,
+                    lighting: { ...scene.parameters.lighting, ...newParams.lighting },
+                    style: { ...scene.parameters.style, ...newParams.style },
+                    color: { ...scene.parameters.color, ...newParams.color },
+                }
+            };
+        }));
+    }, []);
+
+    const toggleCompositionLock = useCallback((id: string) => {
+        setScenes(prev => prev.map(s => {
+            if (s.id !== id) return s;
+            const newLockState = !s.lockComposition;
+            // When locking, we freeze the current seed as the 'structure_seed'
+            return {
+                ...s,
+                lockComposition: newLockState,
+                structure_seed: newLockState ? (s.seed || s.parameters.seed) : undefined
+            };
+        }));
+    }, []);
+
+    const deleteScene = useCallback((id: string) => {
+        setScenes(prev => prev.filter(s => s.id !== id));
+        if (activeSceneId === id) setActiveSceneId(null);
+    }, [activeSceneId]);
+
+    const updateScene = useCallback((id: string, updates: Partial<Scene>) => {
+        setScenes(prev => prev.map(s => s.id === id ? { ...s, ...updates } : s));
+    }, []);
+
+    const createEmptyScene = useCallback(() => {
+        setScenes(prev => {
+            const id = `scene-${Date.now()}`;
+            const newScene: Scene = {
+                id,
+                scriptText: "EXT. UNTITLED SCENE - DAY",
+                visualPrompt: "A new scene description...",
+                status: 'pending',
+                parameters: {
+                    camera: { shotType: 'medium_shot' },
+                    lighting: { type: 'natural' },
+                    seed: Math.floor(Math.random() * 1000000) // JSON-first thinking: explicit seed
+                }
+            };
+            return [...prev, newScene];
+        });
+    }, []);
+
+    const refineShot = useCallback(async (id: string, refinementPrompt: string) => {
+        const scene = scenes.find(s => s.id === id);
+        if (!scene) return;
+
+        setIsGenerating(true);
+        try {
+            // Decoupled Refinement: Use structured_prompt + new prompt + seed lock
+            const generationParams = {
+                ...scene.parameters,
+                structured_prompt: scene.structuredPrompt,
+                seed: scene.lockComposition ? scene.structure_seed : scene.seed
+            };
+
+            const result = await client.generateImage(refinementPrompt, generationParams);
+
+            setScenes(prev => prev.map(s => {
+                if (s.id !== id) return s;
+                return {
+                    ...s,
+                    status: 'completed',
+                    imageUrl: result.url,
+                    seed: result.seed
+                };
+            }));
+
+        } catch (error) {
+            console.error("Refinement failed:", error);
+        } finally {
+            setIsGenerating(false);
+        }
+    }, [scenes, client]);
 
     return {
         script,
@@ -217,13 +370,20 @@ export function useDirector() {
         activeScene,
         activeSceneId,
         selectScene,
-        updateSceneParams,
+        updateSceneParams, // Keep for backward compat if needed, or replace usage
+        updateSceneComposition, // New
+        updateSceneStyle,       // New
+        toggleCompositionLock,  // New
+        createEmptyScene,       // New
+        refineShot,             // New
         generateShot,
         isGenerating,
         history,
         reorderScenes,
         applyPreset,
         analyzeScript,
-        generateAll
+        generateAll,
+        deleteScene,    // New
+        updateScene     // New
     };
 }

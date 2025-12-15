@@ -23,7 +23,10 @@ export interface FiboParameters {
     composition?: CompositionSettings;
     subject?: SubjectSettings;
     style?: StyleSettings;
+    style?: StyleSettings;
     structured_prompt?: Record<string, unknown>; // Decoupled workflow JSON
+    lockComposition?: boolean; // Hackathon Polish: UI flag
+    structure_seed?: number; // Hackathon Polish: V2 seed lock
     // Hybrid V1/V2 Logic
     structure_image_url?: string;
     structure_ref_influence?: number;
@@ -79,6 +82,9 @@ export interface GeneratedImage {
     id: string;
     url: string;
     prompt: string;
+    imageUrl?: string;
+    structuredPrompt?: Record<string, unknown>; // Decoupled Bria V2 Prompt
+    seed?: number;
     parameters: FiboParameters;
 }
 
@@ -90,5 +96,48 @@ export interface Scene {
     status: 'pending' | 'generating' | 'completed' | 'failed';
     imageUrl?: string;
     backgroundRemovedUrl?: string;
-    fiboStructuredPrompt?: Record<string, unknown>; // The full Bria V2 structured prompt JSON
+    structuredPrompt?: Record<string, unknown>; // The full Bria V2 structured prompt JSON (Decoupled Flow)
+    seed?: number;
+    lockComposition?: boolean;
+    structure_seed?: number; // seed locked for composition
+}
+
+// --- Tailored Generation Types ---
+
+export interface TailoredProject {
+    id: string;
+    name: string;
+    description?: string;
+    ip_type: 'defined_character' | 'stylized_scene' | 'multi_object_set' | 'object_variants' | 'icons' | 'character_variants';
+    ip_medium: 'photography' | 'illustration';
+    created_at?: string;
+}
+
+export interface TailoredDataset {
+    id: string;
+    name: string;
+    project_id: string;
+    status: 'created' | 'completed';
+    num_images: number;
+    thumbnail_url?: string;
+    created_at?: string;
+}
+
+export interface TailoredModel {
+    id: string;
+    name: string;
+    description?: string;
+    project_id: string;
+    dataset_id: string;
+    status: 'created' | 'queued' | 'in_progress' | 'completed' | 'failed' | 'stopping' | 'stopped';
+    training_version: 'light' | 'max';
+    training_mode: 'fast' | 'expert'; // 'fast' = fully automated usually
+    created_at?: string;
+}
+
+export interface TailoredImageResult {
+    id: string;
+    url: string;
+    model_id: string;
+    prompt: string;
 }
