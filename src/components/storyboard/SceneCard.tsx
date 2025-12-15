@@ -142,7 +142,8 @@ export function SceneCard({ scene, isSelected, onClick, onViewJson, onDelete, on
                     <div className="flex-1">
                         <input
                             type="text"
-                            className="w-full !bg-transparent border-none text-sm font-bold text-white placeholder:text-white/40 focus:ring-0 p-0 leading-tight"
+                            className="w-full !bg-transparent border-none text-sm font-bold !text-white placeholder:text-white/40 focus:ring-0 p-0 leading-tight"
+                            style={{ color: '#ffffff' }}
                             value={scene.scriptText || ""}
                             onChange={(e) => onUpdate && onUpdate(scene, { scriptText: e.target.value })}
                             placeholder="SCENE HEADING..."
@@ -150,7 +151,8 @@ export function SceneCard({ scene, isSelected, onClick, onViewJson, onDelete, on
                         />
                         <input
                             type="text"
-                            className="w-full !bg-transparent border-none text-[10px] text-white placeholder:text-white/40 focus:ring-0 p-0 mt-1"
+                            className="w-full !bg-transparent border-none text-[10px] !text-gray-300 placeholder:text-gray-600 focus:ring-0 p-0 mt-1"
+                            style={{ color: '#d1d5db' }}
                             value={scene.visualPrompt || ""}
                             onChange={(e) => onUpdate && onUpdate(scene, { visualPrompt: e.target.value })}
                             placeholder="Visual description..."
@@ -160,18 +162,28 @@ export function SceneCard({ scene, isSelected, onClick, onViewJson, onDelete, on
                 </div>
 
                 {/* Metadata Grid */}
-                <div className="grid grid-cols-2 gap-y-1 gap-x-4 text-[10px] text-[#888]">
-                    <div className="flex items-center justify-between border-b border-white/5 pb-1">
-                        <span>Shot</span>
-                        <span className="text-[var(--cinema-teal)] font-medium">
+                <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-[10px] text-[#aaa]">
+                    <div className="flex items-center justify-between border-b border-white/10 pb-1">
+                        <span className="shrink-0">Shot</span>
+                        <span className="text-[var(--cinema-teal)] font-medium text-right truncate ml-2">
                             {scene.parameters?.camera?.shotType?.replace('_', ' ').toUpperCase() || "N/A"}
                         </span>
                     </div>
-                    <div className="flex items-center justify-between border-b border-white/5 pb-1">
-                        <span>Angle</span>
-                        <span className="text-[#ccc]">Eye Level</span>
+                    <div className="flex items-center justify-between border-b border-white/10 pb-1">
+                        <span className="shrink-0">Angle</span>
+                        <span className="text-white font-medium text-right truncate ml-2">
+                            {scene.parameters?.camera?.angle?.replace('_', ' ').toUpperCase() || "EYE LEVEL"}
+                        </span>
                     </div>
-                    {/* ... other metadata ... */}
+                    {/* Add Lighting/Time if needed, keeping it balanced */}
+                    <div className="flex items-center justify-between border-b border-white/10 pb-1">
+                        <span className="shrink-0">Time</span>
+                        <span className="text-[#ccc] text-right truncate ml-2">Day</span>
+                    </div>
+                    <div className="flex items-center justify-between border-b border-white/10 pb-1">
+                        <span className="shrink-0">FPS</span>
+                        <span className="text-[#ccc] text-right truncate ml-2">24</span>
+                    </div>
                 </div>
 
                 {/* Action Footer */}
